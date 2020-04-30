@@ -28,7 +28,7 @@ public class move : MonoBehaviour
         distToGround = collideR.bounds.extents.y;
     }
 
-    void FixedUpdate()
+    void Update()
     {
         float input_H = Input.GetAxis("Horizontal");
         float input_V = Input.GetAxis("Vertical");
