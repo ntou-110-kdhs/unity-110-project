@@ -21,11 +21,15 @@ public class movetest : MonoBehaviour
     [SerializeField]
     [Header("結果角度")]
     private float angle_Sum;
+
+    public Transform Camera;
     void FixedUpdate()//固定頻率重複執行
     {
         //接Input.GetAxis("Vertical")及("Horizontal")的回傳值
         input_V = Input.GetAxis("Vertical");
         input_H = Input.GetAxis("Horizontal");
+        
+
         //如果按住WSAD任何一按鍵，才執行以下程式
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.S))
         {
@@ -36,7 +40,8 @@ public class movetest : MonoBehaviour
             if (float.IsNaN(angle_Sum))
                 angle_Sum = 0;
             //角色轉向
-            transform.eulerAngles = new Vector3(transform.eulerAngles.x, angle_Sum, transform.eulerAngles.z);
+            //transform.eulerAngles = new Vector3(transform.eulerAngles.x, angle_Sum, transform.eulerAngles.z);
         }
+
     }
 }
