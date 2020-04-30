@@ -43,6 +43,7 @@ public class move : MonoBehaviour
                 //以camera forward更改角色forward方向
                 Vector3 camFor = Camera.transform.forward;
                 camFor.y = 0.0f;
+                Debug.Log("camFor : "+ camFor);
                 targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
             }
