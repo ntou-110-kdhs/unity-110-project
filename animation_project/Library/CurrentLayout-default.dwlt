@@ -115,7 +115,7 @@ MonoBehaviour:
   m_MinSize: {x: 713, y: 494}
   m_MaxSize: {x: 18008, y: 14044}
   vertical: 0
-  controlID: 58
+  controlID: 81
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -246,7 +246,7 @@ MonoBehaviour:
   m_MinSize: {x: 232, y: 494}
   m_MaxSize: {x: 10002, y: 14044}
   vertical: 1
-  controlID: 59
+  controlID: 82
 --- !u!114 &11
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -417,9 +417,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: -6.1483026, y: 5.9035745, z: 6.862689}
+    m_Target: {x: -0.01999998, y: 5.178926, z: 13.67}
     speed: 2
-    m_Value: {x: -6.1483026, y: 5.9035745, z: 6.862689}
+    m_Value: {x: -0.01999998, y: 5.178926, z: 13.67}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -452,9 +452,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: -0.06476668, y: 0.76762205, z: -0.07857034, w: -0.63276947}
   m_Size:
-    m_Target: 8.740267
+    m_Target: 2.8578837
     speed: 2
-    m_Value: 8.740267
+    m_Value: 2.8578866
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -683,18 +683,18 @@ MonoBehaviour:
       m_ExpandedIDs: 72fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: 
-        m_OriginalName: 
+        m_Name: Cube (2)
+        m_OriginalName: Cube (2)
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 0
+        m_UserData: -3668
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 11
+        m_OriginalEventType: 0
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 11}
       m_SearchString: 
@@ -756,7 +756,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 3a320000
     m_LastClickedID: 12858
-    m_ExpandedIDs: 00000000dc300000c83400003835000098370000f837000012380000463900003c3b0000903d0000b23d0000b63d0000a03f0000bc40000000ca9a3b
+    m_ExpandedIDs: 00000000dc300000c83400003835000098370000f837000012380000463900003c3b0000903d0000b23d0000b63d0000bc40000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
