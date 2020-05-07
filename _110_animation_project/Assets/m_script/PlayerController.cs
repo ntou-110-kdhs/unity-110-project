@@ -18,13 +18,19 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        if (isAutoFindLights)
+        {
+            findAllLightsInScene();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (shadowDetect())
+        {
+            Debug.Log("isInShadow");
+        }
     }
 
     /// <summary>
@@ -120,6 +126,8 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < lights.Count; i++)
         {
             float distance = 0.0f;
+            Vector3 playerPos = transform.position;
+            playerPos.y += 0.5f;
             Light lightCompnent = lights[i].GetComponent<Light>();
 
             if (lightCompnent.type.ToString() == "Directional")
@@ -132,12 +140,12 @@ public class PlayerController : MonoBehaviour
                 Vector3 sunPos = lights[i].transform.rotation * new Vector3(0.0f, 0.0f, -sunDis);
 
                 // 人和太陽實際距離
-                distance = Vector3.Distance(sunPos, transform.position);
+                distance = Vector3.Distance(sunPos, playerPos);
 
 
                 // ray 設定
                 // ray 起點 => 太陽位置， 方向 => 玩家位置 - 太陽位置
-                Ray ray = new Ray(sunPos, (transform.position - sunPos));
+                Ray ray = new Ray(sunPos, (playerPos - sunPos));
                 RaycastHit hit;
                 Debug.DrawRay(ray.origin, ray.direction, Color.red);
 
@@ -147,16 +155,16 @@ public class PlayerController : MonoBehaviour
                     // 光線擋到物體不可以是玩家
                     if (hit.transform != transform)
                     {
-                        Debug.Log("Directional light make you in shadow");
-                        Debug.Log(hit.transform.name);
+                        //Debug.Log("Directional light make you in shadow");
+                        
                         return true;
                     }
                 }
             }
             else
             {
-                distance = Vector3.Distance(lights[i].transform.position, transform.position);
-                Ray ray = new Ray(lights[i].transform.position, (transform.position - lights[i].transform.position));
+                distance = Vector3.Distance(lights[i].transform.position, playerPos);
+                Ray ray = new Ray(lights[i].transform.position, (playerPos - lights[i].transform.position));
                 RaycastHit hit;
                 Debug.DrawRay(ray.origin, ray.direction, Color.red);
                 if (distance <= lightCompnent.range)
@@ -171,7 +179,8 @@ public class PlayerController : MonoBehaviour
                             // 光線擋到物體不可以是玩家
                             if (hit.transform != transform)
                             {
-                                Debug.Log("Point Light make you in shadow");
+                                //Debug.Log("Point Light make you in shadow");
+                                Debug.Log(hit.transform.name);
                                 return true;
                             }
                         }
@@ -179,7 +188,7 @@ public class PlayerController : MonoBehaviour
                     // Spot light 的判定
                     else
                     {
-                        Vector3 dir = transform.position - lights[i].transform.position;
+                        Vector3 dir = playerPos - lights[i].transform.position;
                         float angle = Vector3.Angle(dir, lights[i].transform.forward);
 
                         // 判定有沒有在光線範圍內
@@ -191,7 +200,7 @@ public class PlayerController : MonoBehaviour
                                 // 光線擋到物體不可以是玩家
                                 if (hit.transform != transform)
                                 {
-                                    Debug.Log("Spot light make you in shadow");
+                                    //Debug.Log("Spot light make you in shadow");
                                     return true;
                                 }
                             }

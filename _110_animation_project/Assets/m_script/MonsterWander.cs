@@ -76,13 +76,13 @@ public class MonsterWander : MonoBehaviour
         if (number <= actionWeight[0])
         {
             currentState = MonsterState.STAND;
-            Debug.Log("MonsterState.STAND");//Stand state non-animated
+            //Debug.Log("MonsterState.STAND");//Stand state non-animated
             //thisAnimator.SetTrigger("Stand");
         }
         else if (actionWeight[0] < number && number <= actionWeight[0] + actionWeight[1])
         {
             currentState = MonsterState.CHECK;
-            Debug.Log("MonsterState.CHECK");//Stand state animated
+           // Debug.Log("MonsterState.CHECK");//Stand state animated
             //thisAnimator.SetTrigger("Check");
         }
         if (actionWeight[0] + actionWeight[1] < number && number <= actionWeight[0] + actionWeight[1] + actionWeight[2])
@@ -90,7 +90,7 @@ public class MonsterWander : MonoBehaviour
             currentState = MonsterState.WALK;
             //随机一个朝向
             targetRotation = Quaternion.Euler(0, Random.Range(1, 5) * 90, 0);
-            Debug.Log("MonsterState.WALK");//Random walk state
+            //Debug.Log("MonsterState.WALK");//Random walk state
             //thisAnimator.SetTrigger("Walk");
         }
     }
@@ -139,7 +139,7 @@ public class MonsterWander : MonoBehaviour
             case MonsterState.WARN:
                 if (!is_Warned)
                 {
-                    Debug.Log("MonsterState.WARN");//Warning state
+                    //Debug.Log("MonsterState.WARN");//Warning state
                     //thisAnimator.SetTrigger("Warn");
                     //gameObject.GetComponent<AudioSource>().Play();
                     is_Warned = true;
@@ -158,7 +158,7 @@ public class MonsterWander : MonoBehaviour
             case MonsterState.CHASE:
                 if (!is_Running)
                 {
-                    Debug.Log("MonsterState.CHASE");//Chase state
+                    //Debug.Log("MonsterState.CHASE");//Chase state
                     is_Running = true;
                 }
                 targetDirect = playerUnit.transform.position - transform.position;
@@ -196,7 +196,7 @@ public class MonsterWander : MonoBehaviour
         diatanceToPlayer = Vector3.Distance(playerUnit.transform.position, transform.position);
         if (diatanceToPlayer < attackRange)
         {
-            Debug.Log("Attack EnemyDistanceCheck");
+           //Debug.Log("Attack EnemyDistanceCheck");
         }
         else if (diatanceToPlayer < defendRadius)
         {
@@ -237,7 +237,7 @@ public class MonsterWander : MonoBehaviour
 
         if (diatanceToPlayer < attackRange)
         {
-            Debug.Log("Attack WanderRadiusCheck");
+            //Debug.Log("Attack WanderRadiusCheck");
         }
         else if (diatanceToPlayer < defendRadius)
         {
@@ -265,7 +265,7 @@ public class MonsterWander : MonoBehaviour
 
         if (diatanceToPlayer < attackRange)
         {
-            Debug.Log("Attack ChaseRadiusCheck");
+            //Debug.Log("Attack ChaseRadiusCheck");
         }
         //如果超出追击范围或者敌人的距离超出警戒距离就返回
         if (diatanceToInitial > chaseRadius || diatanceToPlayer > alertRadius)
@@ -286,7 +286,7 @@ public class MonsterWander : MonoBehaviour
             is_Running = false;
             RandomAction();
         }
-        Debug.Log("Return state");
+        //Debug.Log("Return state");
     }
     //void OnDrawGizmosSelected()
     //{
