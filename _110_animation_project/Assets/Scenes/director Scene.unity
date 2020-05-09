@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414736, b: 0.12107852, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731725, g: 0.13414745, b: 0.12107873, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -962,7 +962,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 704808623}
-  m_LocalRotation: {x: 0.15123938, y: 9.5155344e-17, z: -6.2193304e-16, w: 0.9884972}
+  m_LocalRotation: {x: 0.15123938, y: 9.5155324e-17, z: -6.2193304e-16, w: 0.9884972}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1081,7 +1081,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 726703991}
-  m_LocalRotation: {x: 0.12267661, y: -0.000000034152833, z: 0.0000000042216417, w: 0.9924467}
+  m_LocalRotation: {x: 0.12267661, y: 0.000000034152833, z: -0.0000000042216417, w: 0.9924467}
   m_LocalPosition: {x: 0, y: 2.5, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -1619,7 +1619,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1372552874}
-  m_LocalRotation: {x: 0.12267663, y: -0.000000017076411, z: 0.0000000021108206, w: 0.9924467}
+  m_LocalRotation: {x: 0.12267663, y: 0.000000017076424, z: -0.0000000021108215, w: 0.9924467}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1693,8 +1693,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1484968134}
-  m_LocalRotation: {x: 0.094201595, y: 0.000000029683829, z: -0.0000000028087548,
-    w: 0.9955532}
+  m_LocalRotation: {x: 0.0942016, y: -9.127147e-10, z: 8.6362424e-11, w: 0.9955532}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -2609,7 +2608,7 @@ MonoBehaviour:
   speed: 6
   jumpSpeed: 8
   gravity: 20
-  Camera: {fileID: 726703995}
+  Camera: {fileID: 0}
 --- !u!114 &1835726495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2630,7 +2629,7 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1835726489}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Avatar: {fileID: 9000000, guid: 3f5d4026cd53a4b4dae029bb1011c58a, type: 3}
   m_Controller: {fileID: 9100000, guid: 71c0d175c0dcaf748b0da8c84909af40, type: 2}
   m_CullingMode: 0

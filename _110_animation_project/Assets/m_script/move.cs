@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 // This script moves the character controller forward
 // and sideways based on the arrow keys.
@@ -15,7 +16,7 @@ public class move : MonoBehaviour
     public float speed = 6.0f;
     public float jumpSpeed = 8.0f;
     public float gravity = 20.0f;
-    public Transform Camera;
+    public CinemachineFreeLook Camera;
 
     private Vector3 moveDirection = Vector3.zero;
     private Collider collideR;
@@ -40,8 +41,11 @@ public class move : MonoBehaviour
             //方向鍵有按著的時候才會啟動
             if (input_H != 0 || input_V != 0)
             {
-                //以camera forward更改角色forward方向
-                Vector3 camFor = Camera.transform.forward;
+                //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
+                Vector3 camFor = Camera.LookAt.position - Camera.transform.position;
+                //Debug.Log("Camera.LookAt.position : "+ Camera.LookAt.position);
+                //Debug.Log("Camera.transform.position : " + Camera.transform.position);
+                //Debug.Log("camFor : " + camFor);
                 camFor.y = 0.0f;
                 //Debug.Log("camFor : "+ camFor);
                 targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
