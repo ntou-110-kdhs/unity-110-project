@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Cinemachine;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,11 +21,20 @@ public class TestPlayerController : MonoBehaviour
     //一個光源對一個物件所製造出的影子  陣列
     private Dictionary<string, GameObject> lightsWithShadows = new Dictionary<string, GameObject>();
     
+    //你人是否"進入"影子內
+    [SerializeField] private bool isShadowing = false;
+    //人物身上的mesh物件陣列
+    private List<GameObject> meshs = new List<GameObject>();
+
+
+    [SerializeField] private GameObject ripple;
     // Start is called before the first frame update
     void Start()
-    {
+    {        
         //載入所有光源
-        findAllLightsInScene();        
+        findAllLightsInScene();
+        //載入人物身上所有mesh物件
+        findAllMeshsInScene();                                
     }
 
     // Update is called once per frame
@@ -34,6 +44,30 @@ public class TestPlayerController : MonoBehaviour
         shadowDetect();
         // 印出你踩在哪個影子上
         printWhatShadowsIn();
+
+
+        if (Input.GetKey(KeyCode.E) && isInShadow)
+        {
+            if (!isShadowing)
+            {
+                isShadowing = true;
+                ripple.GetComponent<ParticleSystem>().Play();
+                transformToShadow();
+            }
+        }
+        else if (Input.GetKeyUp(KeyCode.E) && isShadowing)
+        {
+            ripple.GetComponent<ParticleSystem>().Stop();
+            isShadowing = false;
+            transformToShadow();
+        }
+
+        if (!isInShadow)
+        {
+            ripple.GetComponent<ParticleSystem>().Stop();
+            isShadowing = false;
+            transformToShadow();
+        }
     }
 
     /// <summary>
@@ -70,10 +104,56 @@ public class TestPlayerController : MonoBehaviour
 
     /// <summary>
     /// 潛入影子
+    /// parameter: 
+    /// None
+    /// member var need:
+    /// None
+    /// 
     /// </summary>
     public void transformToShadow()
     {
+        CinemachineFreeLook freelook = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();        
+        const float _newRigsHeight = 1.5f;
+        const float _newRigsRadius = 6.0f;
+        // 把所有mesh物件關掉/打開
+        for (int i = 0; i < meshs.Count; i++)
+        {
+            if (meshs[i].GetComponent<MeshRenderer>())
+            {
+                meshs[i].GetComponent<MeshRenderer>().enabled = !isShadowing;                
+            }
+            else
+            {
+                meshs[i].GetComponent<SkinnedMeshRenderer>().enabled = !isShadowing;
+            }
+        }
 
+        // 把動畫關掉/打開
+        GetComponent<Animator>().enabled = !isShadowing;
+
+        // 調整攝影機位置
+        if (isShadowing)
+        {
+            freelook.LookAt = transform;
+            // freelook.m_Orbits[0] = top
+            // freelook.m_Orbits[1] = mid
+            // freelook.m_Orbits[2] = bot
+            freelook.m_Orbits[1].m_Height = _newRigsHeight;
+            freelook.m_Orbits[1].m_Radius = _newRigsRadius;
+            freelook.m_Orbits[2].m_Height = _newRigsHeight;
+            freelook.m_Orbits[2].m_Radius = _newRigsRadius;
+        }
+        else
+        {
+            freelook.LookAt = transform.GetChild(2);
+            // freelook.m_Orbits[0] = top
+            // freelook.m_Orbits[1] = mid
+            // freelook.m_Orbits[2] = bot
+            freelook.m_Orbits[1].m_Height = 2.5f;
+            freelook.m_Orbits[1].m_Radius = 3.0f;
+            freelook.m_Orbits[2].m_Height = 0.8f;
+            freelook.m_Orbits[2].m_Radius = 1.3f;            
+        }                
     }
 
     /// <summary>
@@ -227,7 +307,7 @@ public class TestPlayerController : MonoBehaviour
      *  parameter: 
      *  None
      *  member var need:
-     *  None
+     *  private List<GameObject> meshs = new List<GameObject>();
      *  
      *  Start();
      *  回傳  void
@@ -264,5 +344,29 @@ public class TestPlayerController : MonoBehaviour
             }
         }
     }
+    /*  findAllMeshsInScene()
+      *  parameter: 
+      *  None
+      *  member var need:
+      *  None
+      *  
+      *  Start();
+      *  回傳  void
+      *  自動把所有場景內Player的mesh物件抓進陣列內
+      *  
+      */
+    private void findAllMeshsInScene()
+    {
+        MeshFilter[] meshsFilter = GetComponentsInChildren<MeshFilter>();
+        const string _kachujinMesh = "Kachujin";
+        meshs.Add(transform.Find(_kachujinMesh).gameObject);
+        for(int i = 0; i < meshsFilter.Length; i++)
+        {
+            meshs.Add(meshsFilter[i].gameObject);
+        }
+    }
+
+    
+
 
 }
