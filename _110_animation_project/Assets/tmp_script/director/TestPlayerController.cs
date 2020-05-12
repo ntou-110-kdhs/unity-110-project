@@ -13,8 +13,12 @@ using UnityEngine;
 
 public class TestPlayerController : MonoBehaviour
 {
+    //人物的animateController
+    private PlayerAnimateController animateController;
+    //人物身上的freelook攝影機
+    [SerializeField] private CinemachineFreeLook freelook;
 
-    //你人是否在影子內
+    //你人是否站在影子上
     private bool isInShadow = false;                
     //光源的陣列
     private List<GameObject> lights = new List<GameObject>();
@@ -25,16 +29,31 @@ public class TestPlayerController : MonoBehaviour
     [SerializeField] private bool isShadowing = false;
     //人物身上的mesh物件陣列
     private List<GameObject> meshs = new List<GameObject>();
-
-
+    //水圈圈粒子物件
     [SerializeField] private GameObject ripple;
+
+   
     // Start is called before the first frame update
     void Start()
     {        
         //載入所有光源
         findAllLightsInScene();
         //載入人物身上所有mesh物件
-        findAllMeshsInScene();                                
+        findAllMeshsInScene();
+        //取得animateController
+        animateController = GetComponent<PlayerAnimateController>();
+        //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
+        if(freelook == null)
+        {
+            freelook = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
+        }
+        //取得ripple物件，潛入影子後的特效
+        if(ripple == null)
+        {
+            ripple = transform.Find("Ripple").gameObject;
+        }
+        
+
     }
 
     // Update is called once per frame
@@ -51,23 +70,16 @@ public class TestPlayerController : MonoBehaviour
             if (!isShadowing)
             {
                 isShadowing = true;
-                ripple.GetComponent<ParticleSystem>().Play();
                 transformToShadow();
             }
         }
         else if (Input.GetKeyUp(KeyCode.E) && isShadowing)
         {
-            ripple.GetComponent<ParticleSystem>().Stop();
             isShadowing = false;
             transformToShadow();
         }
 
-        if (!isInShadow)
-        {
-            ripple.GetComponent<ParticleSystem>().Stop();
-            isShadowing = false;
-            transformToShadow();
-        }
+        move();
     }
 
     /// <summary>
@@ -75,7 +87,11 @@ public class TestPlayerController : MonoBehaviour
     /// </summary>
     public void move()
     {
-
+        if (!isInShadow && isShadowing)
+        {
+            isShadowing = false;
+            transformToShadow();
+        }
     }
 
     /// <summary>
@@ -112,28 +128,14 @@ public class TestPlayerController : MonoBehaviour
     /// </summary>
     public void transformToShadow()
     {
-        CinemachineFreeLook freelook = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();        
         const float _newRigsHeight = 1.5f;
         const float _newRigsRadius = 6.0f;
-        // 把所有mesh物件關掉/打開
-        for (int i = 0; i < meshs.Count; i++)
-        {
-            if (meshs[i].GetComponent<MeshRenderer>())
-            {
-                meshs[i].GetComponent<MeshRenderer>().enabled = !isShadowing;                
-            }
-            else
-            {
-                meshs[i].GetComponent<SkinnedMeshRenderer>().enabled = !isShadowing;
-            }
-        }
-
-        // 把動畫關掉/打開
-        GetComponent<Animator>().enabled = !isShadowing;
 
         // 調整攝影機位置
         if (isShadowing)
         {
+            animateController.jumpIntoShadow();
+            ripple.GetComponent<ParticleSystem>().Play();
             freelook.LookAt = transform;
             // freelook.m_Orbits[0] = top
             // freelook.m_Orbits[1] = mid
@@ -145,6 +147,8 @@ public class TestPlayerController : MonoBehaviour
         }
         else
         {
+            animateController.jumpOutOfShadow();
+            ripple.GetComponent<ParticleSystem>().Stop();
             freelook.LookAt = transform.GetChild(2);
             // freelook.m_Orbits[0] = top
             // freelook.m_Orbits[1] = mid
@@ -152,8 +156,20 @@ public class TestPlayerController : MonoBehaviour
             freelook.m_Orbits[1].m_Height = 2.5f;
             freelook.m_Orbits[1].m_Radius = 3.0f;
             freelook.m_Orbits[2].m_Height = 0.8f;
-            freelook.m_Orbits[2].m_Radius = 1.3f;            
-        }                
+            freelook.m_Orbits[2].m_Radius = 1.3f;
+        }
+        // 把所有mesh物件關掉/打開
+        for (int i = 0; i < meshs.Count; i++)
+        {
+            if (meshs[i].GetComponent<MeshRenderer>())
+            {
+                meshs[i].GetComponent<MeshRenderer>().enabled = !isShadowing;
+            }
+            else
+            {
+                meshs[i].GetComponent<SkinnedMeshRenderer>().enabled = !isShadowing;
+            }
+        }
     }
 
     /// <summary>
@@ -194,18 +210,9 @@ public class TestPlayerController : MonoBehaviour
     }
     //做出射繩動作並綁好繩子(一剛開始要在能綁繩的位置才能觸發) 
 
-    /*  shadowDetect()
-         *  parameter: 
-         *  None
-         *  member var need:
-         *  private bool isInShadow
-         *  private List<GameObject> lights         
-         *  private Dictionary<string, GameObject> lightsWithShadows
-         *  
-         *  Update();     
-         *  回傳  void        
-         *  偵測影子用
-         */
+    /// <summary>
+    /// 偵測人物在哪個影子內
+    /// </summary>
     private void shadowDetect()
     {
         isInShadow = false;
@@ -303,17 +310,9 @@ public class TestPlayerController : MonoBehaviour
             //Debug.Log(lights[i].name);
         }        
     }
-    /*  findAllLightsInScene()
-     *  parameter: 
-     *  None
-     *  member var need:
-     *  private List<GameObject> meshs = new List<GameObject>();
-     *  
-     *  Start();
-     *  回傳  void
-     *  自動把所有場景內的光源抓進陣列內
-     *  
-     */
+    /// <summary>
+    /// 找出所有在場景的光源
+    /// </summary>
     private void findAllLightsInScene()
     {
         Light[] lightArr = FindObjectsOfType(typeof(Light)) as Light[];
@@ -323,17 +322,9 @@ public class TestPlayerController : MonoBehaviour
             lightsWithShadows.Add(light.transform.name, null);
         }
     }
-    /*  printWhatShadowsIn()
-     *  parameter: 
-     *  None
-     *  member var need:
-     *  private bool lightsWithShadows                
-     *  
-     *  Start();
-     *  回傳  void
-     *  只是印出你在哪個物件的影子內
-     *  
-     */
+    /// <summary>
+    /// 印出你在哪個影子內
+    /// </summary>
     private void printWhatShadowsIn()
     {
         foreach (KeyValuePair<string, GameObject> i in lightsWithShadows)
@@ -344,17 +335,9 @@ public class TestPlayerController : MonoBehaviour
             }
         }
     }
-    /*  findAllMeshsInScene()
-      *  parameter: 
-      *  None
-      *  member var need:
-      *  None
-      *  
-      *  Start();
-      *  回傳  void
-      *  自動把所有場景內Player的mesh物件抓進陣列內
-      *  
-      */
+    /// <summary>
+    /// 找出人物身上所有的meshs
+    /// </summary>
     private void findAllMeshsInScene()
     {
         MeshFilter[] meshsFilter = GetComponentsInChildren<MeshFilter>();
