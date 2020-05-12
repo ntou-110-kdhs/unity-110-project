@@ -14,16 +14,50 @@ public class PlayerAnimateController : MonoBehaviour
         animator=GetComponent<Animator>();      //指定此物件的ANIMATOR
     }
 
+    public void jumpIntoShadow()                        //潛入影子動畫
+    {
+        resetAllTrigger();
+        animator.Play("jumping_into_shadow");
+        
+    }
+
+    public void jumpOutOfShadow()                        //浮出影子動畫   
+    {
+        resetAllTrigger();
+        animator.SetTrigger("out_of_shadow");           //目前是以jumpIntoShadow 轉換到 jumpOutOfShadow  所以使用TRIGGER
+        //animator.Play("jumping_out_of_shadow");       //若之後要直接轉換  則使用play
+
+    }
+
+    public void resetAllTrigger()                       //重製所有TRIGGER
+    {
+        animator.ResetTrigger("Idle");
+        animator.ResetTrigger("walking");
+        animator.ResetTrigger("Attacking");
+        animator.ResetTrigger("jump");
+    }
+
 
     void Update()
     {
         //當按下WASD時  觸發TRIGGER
+        /*
+        if (Input.GetKey(KeyCode.E))
+        {
+            jumpIntoShadow();
+        }
+        else if(Input.GetKeyUp(KeyCode.E))
+        {
+            jumpOutOfShadow();
+        }
+        
+        */
 
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
             animator.ResetTrigger("Idle");
             animator.SetTrigger("walking"); //觸發TRIGGER
-            Debug.Log("RR");
+            //Debug.Log("RR");
             //根據不同的輸入 給予浮點數不同的值
 
             if (Input.GetKey(KeyCode.W))
@@ -79,6 +113,7 @@ public class PlayerAnimateController : MonoBehaviour
         {
             animator.SetTrigger("Attacking");
         }
+
         else
         {
             animator.ResetTrigger("Attacking");
