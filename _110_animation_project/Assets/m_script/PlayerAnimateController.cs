@@ -21,6 +21,11 @@ public class PlayerAnimateController : MonoBehaviour
         
     }
 
+    public void jumpOutOfShadowEnd()                //jumpOutOfShadow 動畫結束時呼叫
+    {
+        animator.ResetTrigger("out_of_shadow");
+    }
+
     public void jumpOutOfShadow()                        //浮出影子動畫   
     {
         resetAllTrigger();

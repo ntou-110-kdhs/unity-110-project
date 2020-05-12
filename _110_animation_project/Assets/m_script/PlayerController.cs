@@ -172,6 +172,19 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //浮出影子動畫開始
+    public void playerControllerJOFS()
+    {
+        //想做啥
+    }
+
+   //潛入影子動畫結束
+    public void playerControllerJIS()
+    {
+        //想做啥
+    }
+
+
     /// <summary>
     /// 刺殺
     /// </summary>
