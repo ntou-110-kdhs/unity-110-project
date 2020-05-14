@@ -47,7 +47,7 @@ public class TestPlayerController : MonoBehaviour
     private Quaternion targetRotation;
 
     /// //////////////////////
-
+    private float count = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -85,23 +85,25 @@ public class TestPlayerController : MonoBehaviour
         // 偵測影子
         shadowDetect();
         // 印出你踩在哪個影子上
-        printWhatShadowsIn();
+        //printWhatShadowsIn();
 
 
-        if (Input.GetKey(KeyCode.E) && isInShadow)
-        {
-            if (!isShadowing)
+        if (Input.GetKey(KeyCode.E) && !isShadowing)
+        {            
+            if(Time.time - count > 0.15f)
             {
                 isShadowing = true;
                 transformToShadow();
             }
-        }
-        else if (Input.GetKeyUp(KeyCode.E) && isShadowing)
+            
+        }        
+        else if (Input.GetKeyDown(KeyCode.E) && isInShadow)
         {
-            isShadowing = false;
+            isShadowing = !isShadowing;
             transformToShadow();
-            gravity = 20;
+            count = Time.time;
         }
+
 
         if (isShadowing)
         {
@@ -167,7 +169,7 @@ public class TestPlayerController : MonoBehaviour
         // as an acceleration (ms^-2)
         //給予重力
         moveDirection.y -= gravity * Time.deltaTime;
-        Debug.Log(moveDirection);
+        //Debug.Log(moveDirection);
 
         characterController.Move(moveDirection * Time.deltaTime);
 
@@ -460,6 +462,10 @@ public class TestPlayerController : MonoBehaviour
                 moveDirection = transform.TransformDirection(new Vector3(input_H, input_V, 0)/*.normalized*/);
                 moveDirection *= speed;
                 gravity = 0;
+            }
+            else
+            {
+                gravity = 20;
             }
 
         }
