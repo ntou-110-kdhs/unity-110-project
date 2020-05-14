@@ -430,7 +430,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 影子移動    
+    /// </summary>
 
+    private void shadowMove()
+    {
+
+    }
 
 
 }
