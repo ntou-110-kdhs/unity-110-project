@@ -19,7 +19,7 @@ public class TestPlayerController : MonoBehaviour
     [SerializeField] private CinemachineFreeLook freelook;
 
     //你人是否站在影子上
-    private bool isInShadow = false;                
+    [SerializeField] private bool isInShadow = false;                
     //光源的陣列
     private List<GameObject> lights = new List<GameObject>();
     //一個光源對一個物件所製造出的影子  陣列
@@ -32,7 +32,23 @@ public class TestPlayerController : MonoBehaviour
     //水圈圈粒子物件
     [SerializeField] private GameObject ripple;
 
-   
+
+
+    /// /////////
+    CharacterController characterController;
+    public float speed = 6.0f;
+    public float jumpSpeed = 8.0f;
+    public float gravity = 20.0f;
+    public CinemachineFreeLook Camera;
+
+    private Vector3 moveDirection = Vector3.zero;
+    private Collider collideR;
+    private float distToGround;
+    private Quaternion targetRotation;
+
+    /// //////////////////////
+
+
     // Start is called before the first frame update
     void Start()
     {        
@@ -52,8 +68,15 @@ public class TestPlayerController : MonoBehaviour
         {
             ripple = transform.Find("Ripple").gameObject;
         }
-        
 
+
+
+
+        ////
+        characterController = GetComponent<CharacterController>();
+        collideR = GetComponent<Collider>();
+        distToGround = collideR.bounds.extents.y;
+        ////
     }
 
     // Update is called once per frame
@@ -77,9 +100,21 @@ public class TestPlayerController : MonoBehaviour
         {
             isShadowing = false;
             transformToShadow();
+            gravity = 20;
         }
 
-        move();
+        if (isShadowing)
+        {
+            shadowMove();
+        }
+        else
+        {
+            move();
+        }
+        
+
+
+        
     }
 
     /// <summary>
@@ -92,6 +127,53 @@ public class TestPlayerController : MonoBehaviour
             isShadowing = false;
             transformToShadow();
         }
+
+
+        float input_H = Input.GetAxis("Horizontal");
+        float input_V = Input.GetAxis("Vertical");
+
+
+
+
+        /////
+
+        //角色在落地時啟動
+        if (characterController.isGrounded)
+        {
+            //方向鍵有按著的時候才會啟動
+            if (input_H != 0 || input_V != 0)
+            {
+                //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
+                Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
+                camFor.y = 0.0f;
+                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+            }
+ 
+            //前進方向local coord.轉world coord.
+            moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
+
+            moveDirection *= speed;
+
+            //按空白鍵時啟動
+            if (Input.GetButton("Jump"))
+            {
+                moveDirection.y = jumpSpeed;
+            }
+        }
+
+        // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
+        // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
+        // as an acceleration (ms^-2)
+        //給予重力
+        moveDirection.y -= gravity * Time.deltaTime;
+        Debug.Log(moveDirection);
+
+        characterController.Move(moveDirection * Time.deltaTime);
+
+
+
+        /////
     }
 
     /// <summary>
@@ -294,6 +376,7 @@ public class TestPlayerController : MonoBehaviour
                     // 光線擋到物體不可以是玩家
                     if(distance <= lightCompnent.range && angle <= lightCompnent.spotAngle / 2 && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
                     {
+                        //  Debug.Log(hit.transform.name);
                         //Debug.Log("Spot light make you in shadow");
                         if (lightsWithShadows[lights[i].name] != hit.transform.gameObject)
                         {
@@ -303,8 +386,12 @@ public class TestPlayerController : MonoBehaviour
                     }
                     else
                     {
+                        if(lightsWithShadows[lights[i].name] != null)
+                        {
+                            Debug.Log(lights[i].name);
+                        }
                         lightsWithShadows[lights[i].name] = null;
-                    }                    
+                    }               
                 }
             }
             //Debug.Log(lights[i].name);
@@ -349,7 +436,53 @@ public class TestPlayerController : MonoBehaviour
         }
     }
 
-    
+    private void shadowMove()
+    {
+        float input_H = Input.GetAxis("Horizontal");
+        float input_V = Input.GetAxis("Vertical");
+        if (input_H != 0 || input_V != 0)
+        {
+            //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
+            Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
+            camFor.y = 0.0f;
+            targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+
+
+            moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
+            moveDirection *= speed;
+            
+            Ray ray = new Ray(transform.position + new Vector3(0.0f, 0.1f, 0.0f), transform.forward);
+            Debug.DrawRay(ray.origin, ray.direction, Color.red);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 1.0f) && input_V > 0)
+            {
+                moveDirection = transform.TransformDirection(new Vector3(input_H, input_V, 0)/*.normalized*/);
+                moveDirection *= speed;
+                gravity = 0;
+            }
+
+        }
+        // We are grounded, so recalculate
+        // move direction directly from axes       
+        //前進方向local coord.轉world coord.
+
+
+        moveDirection.y -= gravity * Time.deltaTime;
+        
+
+        if (!isInShadow && isShadowing)
+        {
+            isShadowing = false;
+            transformToShadow();
+            gravity = 20;
+
+        }
+
+
+        characterController.Move(moveDirection * Time.deltaTime);
+
+    }
 
 
 }
