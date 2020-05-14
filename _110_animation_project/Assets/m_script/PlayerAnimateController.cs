@@ -8,6 +8,9 @@ public class PlayerAnimateController : MonoBehaviour
     float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
+    [SerializeField]
+    private Transform RightHandTarget;
+
 
     private void Start()
     {
@@ -40,6 +43,16 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("walking");
         animator.ResetTrigger("Attacking");
         animator.ResetTrigger("jump");
+    }
+
+    private void OnAnimatorIK(int layerIndex)
+    {
+        if (animator)
+        {
+            animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1f);
+
+            animator.SetIKPosition(AvatarIKGoal.RightHand, RightHandTarget.position); 
+        }
     }
 
 

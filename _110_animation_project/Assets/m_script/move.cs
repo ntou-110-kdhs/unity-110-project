@@ -20,13 +20,11 @@ public class move : MonoBehaviour
 
     private Vector3 moveDirection = Vector3.zero;
     private Collider collideR;
-    private float distToGround;
     private Quaternion targetRotation;
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         collideR = GetComponent<Collider>();
-        distToGround = collideR.bounds.extents.y;
     }
 
     void Update()

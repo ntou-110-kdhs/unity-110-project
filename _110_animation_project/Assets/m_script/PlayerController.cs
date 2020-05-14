@@ -15,8 +15,8 @@ public class PlayerController : MonoBehaviour
 {
     //人物的animateController
     private PlayerAnimateController animateController;
-    //人物身上的freelook攝影機
-    [SerializeField] private CinemachineFreeLook freelook;
+    //人物身上的freeLookCam攝影機
+    [SerializeField] private CinemachineFreeLook freeLookCam;
 
     //你人是否站在影子上
     private bool isInShadow = false;
@@ -32,10 +32,34 @@ public class PlayerController : MonoBehaviour
     //水圈圈粒子物件
     [SerializeField] private GameObject ripple;
 
+    /**********物理性質*********/
+    [SerializeField] private float charSpeed = 6.0f;
+    [SerializeField] private float charJumpSpeed = 8.0f;
+    [SerializeField] private float gravity = 20.0f;
+    /**********物理性質*********/
+    
+    //人物移動方向
+    private Vector3 moveDirection = Vector3.zero;
+    ////人物碰撞體
+    //private Collider charCollider;
+    //人物轉向(目標)向量
+    private Quaternion targetRotation;
+    //人物操控
+    private CharacterController charController;
+
+    /********鍵鼠操控變數*******/
+    //水平鍵(A,D)有按與否
+    private float inputHor;
+    //垂直鍵(W,S)有按與否
+    private float inputVer;
+    /********鍵鼠操控變數*******/
 
     // Start is called before the first frame update
     void Start()
     {
+        //載入人物操控
+        charController = GetComponent<CharacterController>();
+
         //載入所有光源
         findAllLightsInScene();
         //載入人物身上所有mesh物件
@@ -43,9 +67,9 @@ public class PlayerController : MonoBehaviour
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
         //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
-        if (freelook == null)
+        if (freeLookCam == null)
         {
-            freelook = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
+            freeLookCam = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
         }
         //取得ripple物件，潛入影子後的特效
         if (ripple == null)
@@ -79,6 +103,7 @@ public class PlayerController : MonoBehaviour
             transformToShadow();
         }
 
+        //移動模組
         move();
     }
 
@@ -87,11 +112,54 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void move()
     {
+        //水平鍵(A,D)有按與否
+        inputHor = Input.GetAxis("Horizontal");
+        //垂直鍵(W,S)有按與否
+        inputVer = Input.GetAxis("Vertical");
+
         if (!isInShadow && isShadowing)
         {
             isShadowing = false;
             transformToShadow();
         }
+
+        //角色在落地時啟動
+        if (charController.isGrounded)
+        {
+            //方向鍵有按著的時候才會啟動
+            if (inputHor != 0 || inputVer != 0)
+            {
+                //以freeLookCam pos與freeLookCam本身pos的向量 更改角色forward方向
+                Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+                //Debug.Log("Camera.LookAt.position : "+ Camera.LookAt.position);
+                //Debug.Log("Camera.transform.position : " + Camera.transform.position);
+                //Debug.Log("camFor : " + camFor);
+                camFor.y = 0.0f;
+                //Debug.Log("camFor : "+ camFor);
+                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f/*每一frame轉向 5.0 度*/);
+            }
+            // We are grounded, so recalculate
+            // move direction directly from axes       
+            //前進方向local coord.轉world coord.
+            moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
+
+            //以charSpeed 的速率前進
+            moveDirection *= charSpeed;
+
+            //按空白鍵時啟動
+            if (Input.GetButton("Jump"))
+            {
+                moveDirection.y = charJumpSpeed;
+            }
+        }
+
+        // Apply gravity. Gravity is multiplied by deltaTime twice (once here, and once below
+        // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
+        // as an acceleration (ms^-2)
+        //給予重力
+        moveDirection.y -= gravity * Time.deltaTime;
+        charController.Move(moveDirection * Time.deltaTime);
     }
 
     /// <summary>
@@ -136,27 +204,27 @@ public class PlayerController : MonoBehaviour
         {
             animateController.jumpIntoShadow();
             ripple.GetComponent<ParticleSystem>().Play();
-            freelook.LookAt = transform;
-            // freelook.m_Orbits[0] = top
-            // freelook.m_Orbits[1] = mid
-            // freelook.m_Orbits[2] = bot
-            freelook.m_Orbits[1].m_Height = _newRigsHeight;
-            freelook.m_Orbits[1].m_Radius = _newRigsRadius;
-            freelook.m_Orbits[2].m_Height = _newRigsHeight;
-            freelook.m_Orbits[2].m_Radius = _newRigsRadius;
+            freeLookCam.LookAt = transform;
+            // freeLookCam.m_Orbits[0] = top
+            // freeLookCam.m_Orbits[1] = mid
+            // freeLookCam.m_Orbits[2] = bot
+            freeLookCam.m_Orbits[1].m_Height = _newRigsHeight;
+            freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
+            freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
+            freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
         }
         else
         {
             animateController.jumpOutOfShadow();
             ripple.GetComponent<ParticleSystem>().Stop();
-            freelook.LookAt = transform.GetChild(2);
-            // freelook.m_Orbits[0] = top
-            // freelook.m_Orbits[1] = mid
-            // freelook.m_Orbits[2] = bot
-            freelook.m_Orbits[1].m_Height = 2.5f;
-            freelook.m_Orbits[1].m_Radius = 3.0f;
-            freelook.m_Orbits[2].m_Height = 0.8f;
-            freelook.m_Orbits[2].m_Radius = 1.3f;
+            freeLookCam.LookAt = transform.GetChild(2);
+            // freeLookCam.m_Orbits[0] = top
+            // freeLookCam.m_Orbits[1] = mid
+            // freeLookCam.m_Orbits[2] = bot
+            freeLookCam.m_Orbits[1].m_Height = 2.5f;
+            freeLookCam.m_Orbits[1].m_Radius = 3.0f;
+            freeLookCam.m_Orbits[2].m_Height = 0.8f;
+            freeLookCam.m_Orbits[2].m_Radius = 1.3f;
         }
         // 把所有mesh物件關掉/打開
         for (int i = 0; i < meshs.Count; i++)
