@@ -442,53 +442,38 @@ public class TestPlayerController : MonoBehaviour
     {
         float input_H = Input.GetAxis("Horizontal");
         float input_V = Input.GetAxis("Vertical");
+
+        Vector3 forward = transform.forward;
+        Vector3 pos = transform.position;
         if (input_H != 0 || input_V != 0)
         {
             //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
             Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
             camFor.y = 0.0f;
             targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-
-
-            moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
-            moveDirection *= speed;
-            
-            Ray ray = new Ray(transform.position + new Vector3(0.0f, 0.1f, 0.0f), transform.forward);
-            Debug.DrawRay(ray.origin, ray.direction, Color.red);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit, 1.0f) && input_V > 0)
-            {
-                moveDirection = transform.TransformDirection(new Vector3(input_H, input_V, 0)/*.normalized*/);
-                moveDirection *= speed;
-                gravity = 0;
-            }
-            else
-            {
-                gravity = 20;
-            }
-
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);           
         }
-        // We are grounded, so recalculate
-        // move direction directly from axes       
-        //前進方向local coord.轉world coord.
 
 
+
+        moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
+        moveDirection *= speed;
+
+        Ray ray = new Ray(pos, forward);
+        Debug.DrawRay(ray.origin, ray.direction, Color.red);
         moveDirection.y -= gravity * Time.deltaTime;
-        
 
         if (!isInShadow && isShadowing)
         {
             isShadowing = false;
             transformToShadow();
-            gravity = 20;
-
         }
-
-
         characterController.Move(moveDirection * Time.deltaTime);
 
+
+
     }
+
 
 
 }
