@@ -37,6 +37,17 @@ public class PlayerAnimateController : MonoBehaviour
 
     }
 
+    public void attackStart()                           //攻擊動畫開始   能開始傷害NPC
+    {
+        Debug.Log("on attack");
+        BroadcastMessage("Attacking");
+    }
+
+    public void attackFinished()                           //攻擊動畫結束   停止傷害NPC
+    {
+        BroadcastMessage("Stop_Attacking");
+    }
+
     public void resetAllTrigger()                       //重製所有TRIGGER
     {
         animator.ResetTrigger("Idle");
@@ -44,6 +55,8 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("Attacking");
         animator.ResetTrigger("jump");
     }
+
+
 
     private void OnAnimatorIK(int layerIndex)
     {
@@ -71,7 +84,7 @@ public class PlayerAnimateController : MonoBehaviour
         
         */
 
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))       //移動ANIMATION
         {
             animator.ResetTrigger("Idle");
             animator.SetTrigger("walking"); //觸發TRIGGER
