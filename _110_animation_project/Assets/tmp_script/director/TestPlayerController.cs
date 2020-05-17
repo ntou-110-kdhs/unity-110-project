@@ -87,23 +87,24 @@ public class TestPlayerController : MonoBehaviour
         // 印出你踩在哪個影子上
         //printWhatShadowsIn();
 
-
-        if (Input.GetKey(KeyCode.E) && !isShadowing)
-        {            
-            if(Time.time - count > 0.15f)
-            {
-                isShadowing = true;
-                transformToShadow();
-            }
-            
-        }        
-        else if (Input.GetKeyDown(KeyCode.E) && isInShadow)
+        if(characterController.isGrounded)
         {
-            isShadowing = !isShadowing;
-            transformToShadow();
-            count = Time.time;
+            if (Input.GetKey(KeyCode.E) && !isShadowing && isInShadow)
+            {            
+                if(Time.time - count > 0.20f)
+                {
+                    isShadowing = true;
+                    transformToShadow();
+                }            
+            }        
+            else if (Input.GetKeyDown(KeyCode.E) && isInShadow)
+            {
+                isShadowing = !isShadowing;
+                transformToShadow();
+                count = Time.time;
+            }
         }
-
+        
 
         if (isShadowing)
         {
@@ -118,24 +119,66 @@ public class TestPlayerController : MonoBehaviour
 
         
     }
+    private void shadowMove()
+    {
+        float input_H = Input.GetAxis("Horizontal");
+        float input_V = Input.GetAxis("Vertical");
+
+        Vector3 forward = transform.forward;
+        Vector3 pos = transform.position;
+        Ray ray = new Ray(pos, forward);        
+        bool isWall = false;
+        if(Physics.Raycast(ray, 1.0f))
+        {
+            isWall = true;
+        }
+        if (input_H != 0 || input_V != 0)
+        {
+            //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
+            Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
+            camFor.y = 0.0f;
+            targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);           
+
+            moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
+
+            if(isWall)
+            {
+                gravity = 0;
+                moveDirection = transform.TransformDirection(new Vector3(input_H, input_V, input_V)/*.normalized*/);
+            }
+            else
+            {
+                gravity = 20;
+            }
+            moveDirection *= speed;
+        }        
+        Debug.Log(moveDirection);
+        Debug.DrawRay(ray.origin, ray.direction, Color.red);
+        Ray moveDirRay = new Ray(pos, moveDirection);
+        Debug.DrawRay(moveDirRay.origin, moveDirRay.direction, Color.red);
+        
+        moveDirection.y -= gravity * Time.deltaTime;
+
+        if ( isShadowing && (!isInShadow || (!characterController.isGrounded && !isWall )))
+        {
+            isShadowing = false;
+            transformToShadow();
+            gravity = 20;
+        }
+        characterController.Move(moveDirection * Time.deltaTime);
+
+
+
+    }
 
     /// <summary>
     /// 移動
     /// </summary>
     public void move()
     {
-        if (!isInShadow && isShadowing)
-        {
-            isShadowing = false;
-            transformToShadow();
-        }
-
-
         float input_H = Input.GetAxis("Horizontal");
         float input_V = Input.GetAxis("Vertical");
-
-
-
 
         /////
 
@@ -388,10 +431,10 @@ public class TestPlayerController : MonoBehaviour
                     }
                     else
                     {
-                        if(lightsWithShadows[lights[i].name] != null)
+                        /*if(lightsWithShadows[lights[i].name] != null)
                         {
                             Debug.Log(lights[i].name);
-                        }
+                        }*/
                         lightsWithShadows[lights[i].name] = null;
                     }               
                 }
@@ -438,41 +481,7 @@ public class TestPlayerController : MonoBehaviour
         }
     }
 
-    private void shadowMove()
-    {
-        float input_H = Input.GetAxis("Horizontal");
-        float input_V = Input.GetAxis("Vertical");
-
-        Vector3 forward = transform.forward;
-        Vector3 pos = transform.position;
-        if (input_H != 0 || input_V != 0)
-        {
-            //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
-            Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
-            camFor.y = 0.0f;
-            targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);           
-        }
-
-
-
-        moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
-        moveDirection *= speed;
-
-        Ray ray = new Ray(pos, forward);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
-        moveDirection.y -= gravity * Time.deltaTime;
-
-        if (!isInShadow && isShadowing)
-        {
-            isShadowing = false;
-            transformToShadow();
-        }
-        characterController.Move(moveDirection * Time.deltaTime);
-
-
-
-    }
+    
 
 
 
