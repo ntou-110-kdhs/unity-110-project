@@ -32,10 +32,12 @@ public class TestPlayerController : MonoBehaviour
     //水圈圈粒子物件
     [SerializeField] private GameObject ripple;
 
-
+    [SerializeField] private bool isClimbing = false;
+    [SerializeField] private bool isWall;
+    [SerializeField] private int shadowFlyCount;
 
     /// /////////
-    CharacterController characterController;
+    CharacterController charController;
     public float speed = 6.0f;
     public float jumpSpeed = 8.0f;
     public float gravity = 20.0f;
@@ -47,7 +49,7 @@ public class TestPlayerController : MonoBehaviour
     private Quaternion targetRotation;
 
     /// //////////////////////
-    private float count = 0;
+    private float delayCount = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -73,7 +75,7 @@ public class TestPlayerController : MonoBehaviour
 
 
         ////
-        characterController = GetComponent<CharacterController>();
+        charController = GetComponent<CharacterController>();
         collideR = GetComponent<Collider>();
         distToGround = collideR.bounds.extents.y;
         ////
@@ -87,21 +89,21 @@ public class TestPlayerController : MonoBehaviour
         // 印出你踩在哪個影子上
         //printWhatShadowsIn();
 
-        if(characterController.isGrounded)
+        if(charController.isGrounded)
         {
             if (Input.GetKey(KeyCode.E) && !isShadowing && isInShadow)
             {            
-                if(Time.time - count > 0.20f)
+                if(Time.time - delayCount > 0.20f)
                 {
                     isShadowing = true;
                     transformToShadow();
                 }            
             }        
-            else if (Input.GetKeyDown(KeyCode.E) && isInShadow)
+            else if (Input.GetKeyDown(KeyCode.E) && isInShadow && charController.isGrounded)
             {
                 isShadowing = !isShadowing;
                 transformToShadow();
-                count = Time.time;
+                delayCount = Time.time;
             }
         }
         
@@ -124,53 +126,152 @@ public class TestPlayerController : MonoBehaviour
         float input_H = Input.GetAxis("Horizontal");
         float input_V = Input.GetAxis("Vertical");
 
-        Vector3 forward = transform.forward;
-        Vector3 pos = transform.position;
-        Ray ray = new Ray(pos, forward);        
-        bool isWall = false;
-        if(Physics.Raycast(ray, 1.0f))
+        Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f) , transform.forward);
+        Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
+        Ray rayLeft = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f) , -transform.right);
+        Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
+        RaycastHit hit;
+        isWall = false;
+
+        bool climbLeft = false;
+        bool climbRight = false;
+        bool climbForward = false;
+        bool climbBack = false;
+
+        // 避免出錯 都先初始化
+        gravity = 20;
+        // 避免滑行問題
+        moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
+
+        // 偵側牆壁 前方
+        if(Physics.Raycast(rayForward, out hit, 1.0f))
         {
-            isWall = true;
+            if(hit.transform != transform )
+            {
+                isWall = true;
+                climbForward = true;
+            }            
         }
+        // 偵側牆壁 後方
+        else if(Physics.Raycast(rayBack, out hit, 1.0f))
+        {
+            if (hit.transform != transform)
+            {
+                isWall = true;
+                climbBack = true;
+            }
+        }
+        // 偵側牆壁 右方
+        else if(Physics.Raycast(rayRight, out hit, 1.0f))
+        {
+            if(hit.transform != transform)
+            {
+                isWall = true;
+                climbRight = true;
+            }
+        }
+        // 偵側牆壁 左方
+        else if (Physics.Raycast(rayLeft, out hit, 1.0f))
+        {
+            if (hit.transform != transform)
+            {
+                isWall = true;
+                climbLeft = true;
+            }
+        }
+        // 避免斜坡之後人整個飄在天上
+        if (isClimbing && !isWall)
+        {
+            shadowFlyCount++;
+            if (shadowFlyCount >= 20)
+            {
+                shadowFlyCount = 0;
+                isClimbing = false;
+            }            
+        }
+        else
+        {
+            shadowFlyCount = 0;
+        }
+
+        // 移動
         if (input_H != 0 || input_V != 0)
         {
             //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
             Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
             camFor.y = 0.0f;
             targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);           
-
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);  
+            
+            // 移動方向
             moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
 
+            // 爬牆中
             if(isWall)
             {
                 gravity = 0;
-                moveDirection = transform.TransformDirection(new Vector3(input_H, input_V, input_V)/*.normalized*/);
-            }
-            else
-            {
-                gravity = 20;
-            }
-            moveDirection *= speed;
-        }        
-        Debug.Log(moveDirection);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
-        Ray moveDirRay = new Ray(pos, moveDirection);
-        Debug.DrawRay(moveDirRay.origin, moveDirRay.direction, Color.red);
-        
-        moveDirection.y -= gravity * Time.deltaTime;
+                // 爬牆中三個方向的位移量
+                float dirZ = input_V;
+                float dirX = input_H;
+                float dirY = 0;
 
-        if ( isShadowing && (!isInShadow || (!characterController.isGrounded && !isWall )))
+                // 如果前方OR後方有牆
+                if (climbForward || climbBack)
+                {
+                    dirY = input_V;
+                    if (climbBack)
+                    {
+                        dirY *= -1;
+                    }
+                }
+                // 又如果左方OR右方有牆
+                else if (climbLeft || climbRight)
+                {
+                    dirY = input_H;
+                    if (climbLeft)
+                    {
+                        dirY *= -1;
+                    }
+                }                
+
+                // 確定有牆&&同時開始爬 (離地) 了
+                if (!charController.isGrounded )
+                {
+                    isClimbing = true;           
+                    //(離地時 要將方向鎖定在上下而已)
+                    if (climbForward || climbBack)
+                    {
+                        dirZ = 0;
+                    }
+                    //(離地時 要將方向鎖定在上下而已)
+                    else if (climbLeft || climbRight)
+                    {
+                        dirX = 0;
+                    }
+
+                }                             
+                // 新的移動向量
+                moveDirection = transform.TransformDirection(new Vector3(dirX, dirY, dirZ)/*.normalized*/);
+                
+            }           
+            moveDirection *= speed;
+        }
+        // 爬牆失效時
+        if (charController.isGrounded || !isInShadow || Input.GetKeyDown(KeyCode.E))
+        {
+            isClimbing = false;
+            isWall = false;
+        }    
+        moveDirection.y -= gravity * Time.deltaTime;
+        if ( !isClimbing && isShadowing && (!isInShadow || (!charController.isGrounded && !isWall)))
         {
             isShadowing = false;
             transformToShadow();
             gravity = 20;
         }
-        characterController.Move(moveDirection * Time.deltaTime);
-
-
-
+        charController.Move(moveDirection * Time.deltaTime);
     }
+    
 
     /// <summary>
     /// 移動
@@ -183,7 +284,7 @@ public class TestPlayerController : MonoBehaviour
         /////
 
         //角色在落地時啟動
-        if (characterController.isGrounded)
+        if (charController.isGrounded)
         {
             //方向鍵有按著的時候才會啟動
             if (input_H != 0 || input_V != 0)
@@ -214,7 +315,7 @@ public class TestPlayerController : MonoBehaviour
         moveDirection.y -= gravity * Time.deltaTime;
         //Debug.Log(moveDirection);
 
-        characterController.Move(moveDirection * Time.deltaTime);
+        charController.Move(moveDirection * Time.deltaTime);
 
 
 
