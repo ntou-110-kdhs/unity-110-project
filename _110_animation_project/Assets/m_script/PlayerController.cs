@@ -52,6 +52,10 @@ public class PlayerController : MonoBehaviour
     private float inputHor;
     //垂直鍵(W,S)有按與否
     private float inputVer;
+    //滑鼠水平(X軸)移動
+    private float mouseX;
+    //滑鼠垂直(Y軸)移動
+    private float mouseY;
     /********鍵鼠操控變數*******/
 
     // Start is called before the first frame update
@@ -116,6 +120,10 @@ public class PlayerController : MonoBehaviour
         inputHor = Input.GetAxis("Horizontal");
         //垂直鍵(W,S)有按與否
         inputVer = Input.GetAxis("Vertical");
+        //滑鼠水平(X軸)移動
+        mouseX = Input.GetAxis("Mouse X");
+        //滑鼠垂直(Y軸)移動
+        mouseY = Input.GetAxis("Mouse Y");
 
         if (!isInShadow && isShadowing)
         {
@@ -126,8 +134,8 @@ public class PlayerController : MonoBehaviour
         //角色在落地時啟動
         if (charController.isGrounded)
         {
-            //方向鍵有按著的時候才會啟動
-            if (inputHor != 0 || inputVer != 0)
+            //滑鼠有動的時候才會啟動
+            if (mouseX != 0 || mouseY != 0)
             {
                 //以freeLookCam pos與freeLookCam本身pos的向量 更改角色forward方向
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
