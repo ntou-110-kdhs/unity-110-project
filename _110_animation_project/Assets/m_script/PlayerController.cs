@@ -167,8 +167,8 @@ public class PlayerController : MonoBehaviour
         //角色在落地時啟動
         if (charController.isGrounded)
         {
-            //滑鼠有動的時候才會啟動
-            if (mouseX != 0 || mouseY != 0)
+            // 滑鼠 有動 與 方向鍵 有按著的時候才會啟動
+            if ((mouseX != 0 || mouseY != 0) && (inputHor != 0 || inputVer != 0))
             {
                 //以freeLookCam pos與freeLookCam本身pos的向量 更改角色forward方向
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
