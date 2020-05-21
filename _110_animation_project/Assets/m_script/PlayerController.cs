@@ -79,6 +79,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         //載入人物操控
         charController = GetComponent<CharacterController>();
 
@@ -118,8 +119,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (Time.time - delayCount > 0.20f)
                 {
-                    isShadowing = true;
-                    transformToShadow();
+                    animateController.jumpIntoShadow();
                 }
             }
             else if (Input.GetKeyDown(KeyCode.E) && isInShadow && charController.isGrounded)
@@ -281,16 +281,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //浮出影子動畫開始
-    public void playerControllerJOFS()
-    {
-        //想做啥
-        //transformToShadow();
-    }
+
 
    //潛入影子動畫結束
     public void playerControllerJIS()
     {
+        isShadowing = true;
+        transformToShadow();
         //想做啥
         //transformToShadow();
     }
@@ -479,8 +476,9 @@ public class PlayerController : MonoBehaviour
 
     private void shadowMove()
     {
-        float input_H = Input.GetAxis("Horizontal");
-        float input_V = Input.GetAxis("Vertical");
+        inputHor = Input.GetAxis("Horizontal");
+        inputVer = Input.GetAxis("Vertical");
+        
 
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
         Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
@@ -551,30 +549,33 @@ public class PlayerController : MonoBehaviour
         }
 
         // 移動
-        if (input_H != 0 || input_V != 0)
+        if (inputHor != 0 || inputVer != 0)
         {
             //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
-            Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
-            camFor.y = 0.0f;
-            targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-
+            if (((mouseX != 0 || mouseY != 0) && inputHor != 0) || inputVer != 0)
+            {
+                Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+                camFor.y = 0.0f;
+                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+                transform.rotation = targetRotation;//Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+            }
+           
             // 移動方向
-            moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
+            moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
 
             // 爬牆中
             if (isWall)
             {
                 gravity = 0;
                 // 爬牆中三個方向的位移量
-                float dirZ = input_V;
-                float dirX = input_H;
+                float dirZ = inputVer;
+                float dirX = inputHor;
                 float dirY = 0;
 
                 // 如果前方OR後方有牆
                 if (climbForward || climbBack)
                 {
-                    dirY = input_V;
+                    dirY = inputVer;
                     if (climbBack)
                     {
                         dirY *= -1;
@@ -583,7 +584,7 @@ public class PlayerController : MonoBehaviour
                 // 又如果左方OR右方有牆
                 else if (climbLeft || climbRight)
                 {
-                    dirY = input_H;
+                    dirY = inputHor;
                     if (climbLeft)
                     {
                         dirY *= -1;
