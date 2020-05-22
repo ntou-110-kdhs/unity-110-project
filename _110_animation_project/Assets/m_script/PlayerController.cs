@@ -476,9 +476,14 @@ public class PlayerController : MonoBehaviour
 
     private void shadowMove()
     {
+        //水平鍵(A,D)有按與否
         inputHor = Input.GetAxis("Horizontal");
+        //垂直鍵(W,S)有按與否
         inputVer = Input.GetAxis("Vertical");
-        
+        //滑鼠水平(X軸)移動
+        mouseX = Input.GetAxis("Mouse X");
+        //滑鼠垂直(Y軸)移動
+        mouseY = Input.GetAxis("Mouse Y");
 
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
         Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
@@ -507,7 +512,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         // 偵側牆壁 後方
-        else if (Physics.Raycast(rayBack, out hit, 1.0f))
+        if (Physics.Raycast(rayBack, out hit, 1.0f))
         {
             if (hit.transform != transform)
             {
@@ -516,7 +521,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         // 偵側牆壁 右方
-        else if (Physics.Raycast(rayRight, out hit, 1.0f))
+        if (Physics.Raycast(rayRight, out hit, 1.0f))
         {
             if (hit.transform != transform)
             {
@@ -525,7 +530,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         // 偵側牆壁 左方
-        else if (Physics.Raycast(rayLeft, out hit, 1.0f))
+        if (Physics.Raycast(rayLeft, out hit, 1.0f))
         {
             if (hit.transform != transform)
             {
@@ -556,10 +561,9 @@ public class PlayerController : MonoBehaviour
             {
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
                 camFor.y = 0.0f;
-                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-                transform.rotation = targetRotation;//Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+                transform.forward = camFor;//Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
             }
-           
+
             // 移動方向
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
 
@@ -573,23 +577,29 @@ public class PlayerController : MonoBehaviour
                 float dirY = 0;
 
                 // 如果前方OR後方有牆
-                if (climbForward || climbBack)
+                if ((climbForward || climbBack) && inputVer != 0)
                 {
-                    dirY = inputVer;
+                    dirY += inputVer;
                     if (climbBack)
                     {
                         dirY *= -1;
+
                     }
                 }
                 // 又如果左方OR右方有牆
-                else if (climbLeft || climbRight)
+                if ((climbLeft || climbRight) && inputHor != 0)
                 {
-                    dirY = inputHor;
+                    dirY += inputHor;
                     if (climbLeft)
                     {
                         dirY *= -1;
                     }
                 }
+                if (dirY >= 1)
+                {
+                    dirY = 1;
+                }
+
 
                 // 確定有牆&&同時開始爬 (離地) 了
                 if (!charController.isGrounded)

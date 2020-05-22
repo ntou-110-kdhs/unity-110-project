@@ -1147,7 +1147,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 704808623}
-  m_LocalRotation: {x: -0.6990531, y: 0.10641799, z: -0.69889265, w: -0.10746675}
+  m_LocalRotation: {x: -0.69905317, y: 0.106417984, z: -0.6988926, w: -0.10746676}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -3243,22 +3243,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RightHandTarget: {fileID: 0}
---- !u!114 &1835726494
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1835726489}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc1f6b3038295fb44acd13cd3de9e41d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 6
-  jumpSpeed: 8
-  gravity: 20
-  Camera: {fileID: 1553224440}
 --- !u!114 &1835726495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3271,17 +3255,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 442cfab4f6e42de45b2b1f712389543a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  freelook: {fileID: 0}
-  isInShadow: 0
+  freeLookCam: {fileID: 0}
   isShadowing: 0
   ripple: {fileID: 291187558911665750}
-  isClimbing: 0
-  isWall: 0
-  shadowFlyCount: 0
-  speed: 6
-  jumpSpeed: 8
+  climbLeft: 0
+  climbRight: 0
+  climbForward: 0
+  climbBack: 0
+  charSpeed: 6
+  charJumpSpeed: 8
   gravity: 20
-  Camera: {fileID: 0}
 --- !u!95 &1835726496
 Animator:
   serializedVersion: 3
@@ -3290,7 +3273,7 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1835726489}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 3f5d4026cd53a4b4dae029bb1011c58a, type: 3}
   m_Controller: {fileID: 9100000, guid: 71c0d175c0dcaf748b0da8c84909af40, type: 2}
   m_CullingMode: 0
