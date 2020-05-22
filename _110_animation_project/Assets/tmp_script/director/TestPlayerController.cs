@@ -125,6 +125,8 @@ public class TestPlayerController : MonoBehaviour
     {
         float input_H = Input.GetAxis("Horizontal");
         float input_V = Input.GetAxis("Vertical");
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
 
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f) , transform.forward);
         Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
@@ -194,14 +196,24 @@ public class TestPlayerController : MonoBehaviour
             shadowFlyCount = 0;
         }
 
+        /*Debug.DrawRay(rayForward.origin, rayForward.direction, Color.red);
+        Debug.DrawRay(rayBack.origin, rayBack.direction, Color.red);
+        Debug.DrawRay(rayRight.origin, rayRight.direction, Color.red);
+        Debug.DrawRay(rayLeft.origin, rayLeft.direction, Color.red);*/
+
         // 移動
         if (input_H != 0 || input_V != 0)
         {
-            //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
-            Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
-            camFor.y = 0.0f;
-            targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);  
+            if ((mouseX != 0 || mouseY != 0))
+            {
+                Debug.Log("Test");
+                //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
+                Vector3 camFor = freelook.LookAt.position - freelook.transform.position;
+                camFor.y = 0.0f;
+                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+            }
+            
             
             // 移動方向
             moveDirection = transform.TransformDirection(new Vector3(input_H, 0, input_V)/*.normalized*/);
