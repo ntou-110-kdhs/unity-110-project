@@ -3,25 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-//一般變數: 開頭小寫，單字分隔開頭大寫 Ex:myFirstName
-
-//一般函式(function):開頭小寫，單字分隔開頭大寫 Ex:myFirstFunc();
-
-//常數:開頭底線+小寫，單字分隔開頭大寫 Ex:_myFirstName
-
-//類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
-
-public class PlayerController : MonoBehaviour
+public class M_TestPlayerController : MonoBehaviour
 {
     //人物的animateController
     private PlayerAnimateController animateController;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
 
+
     /**********推移物件*********/
     private bool isPushingObject = false;
     GameObject pushedObject = null;  //推動中的物件
     /**********推移物件*********/
+
 
     /**********影子偵測*********/
     //你人是否站在影子上
@@ -50,6 +44,10 @@ public class PlayerController : MonoBehaviour
     private bool isClimbing = false;
     // 飛行延遲
     private int shadowFlyCount = 0;
+    [SerializeField] private bool climbLeft = false;
+    [SerializeField] private bool climbRight = false;
+    [SerializeField] private bool climbForward = false;
+    [SerializeField] private bool climbBack = false;
     /**********潛行移動*********/
 
 
@@ -115,6 +113,7 @@ public class PlayerController : MonoBehaviour
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 0.5f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
         //Debug.DrawRay(transform.position + new Vector3(0.0f, 0.5f, 0.0f), transform.forward,Color.green);
         RaycastHit hit;
+        
 
         // 偵測影子
         shadowDetect();
@@ -138,18 +137,20 @@ public class PlayerController : MonoBehaviour
                 transformToShadow();
                 delayCount = Time.time;
             }
+
         }
         /**********潛入影子*********/
+
 
         /**********推移物品*********/
         if (Physics.Raycast(rayObject, out hit, 1.2f))
         {
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
-            if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing)
+            if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false &&!isShadowing)     
             {
                 //靠太進  讓自己往後退
-                float distance = Vector3.Distance(hit.point, this.transform.position);
-                if (distance < 0.8) transform.position -= transform.forward / 4;
+                float distance=Vector3.Distance(hit.point,this.transform.position);
+                if (distance < 0.8) transform.position -= transform.forward/4;
 
                 hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
                 pushedObject = hit.transform.gameObject;                                         //紀錄物體
@@ -170,11 +171,12 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+            if(pushedObject!=null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
             pushedObject = null;
             isPushingObject = false;
         }
         /**********推移物品*********/
+
 
         if (isShadowing)
         {
@@ -182,7 +184,7 @@ public class PlayerController : MonoBehaviour
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
             shadowMove();
         }
-        else if (isPushingObject)
+        else if ( isPushingObject)
         {
             //推移物品移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
@@ -251,6 +253,7 @@ public class PlayerController : MonoBehaviour
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
         // as an acceleration (ms^-2)
         //給予重力
+        
         moveDirection.y -= gravity * Time.deltaTime;
         charController.Move(moveDirection * Time.deltaTime);
     }
@@ -544,10 +547,10 @@ public class PlayerController : MonoBehaviour
         RaycastHit hit;
         bool isWall = false;
 
-        bool climbLeft = false;
-        bool climbRight = false;
-        bool climbForward = false;
-        bool climbBack = false;
+        climbLeft = false;
+        climbRight = false;
+        climbForward = false;
+        climbBack = false;
 
         // 避免出錯 都先初始化
         gravity = 20;
@@ -691,6 +694,7 @@ public class PlayerController : MonoBehaviour
         charController.Move(moveDirection * Time.deltaTime);
     }
 
+
     private void dragMove()             //拖拉物體時的移動
     {
         //水平鍵(A,D)有按與否
@@ -727,7 +731,7 @@ public class PlayerController : MonoBehaviour
 
             if (camAngle <= 60)             //在前方
             {
-                moveDirection = transform.TransformDirection(new Vector3(inputHor * -1, 0, inputVer * -1));
+                moveDirection = transform.TransformDirection(new Vector3(inputHor*-1, 0, inputVer*-1));
             }
             else if (camAngle > 60 && camAngle <= 135)
             {
@@ -738,7 +742,7 @@ public class PlayerController : MonoBehaviour
 
                 if (rightAngle <= 90)       //在右側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(inputVer * -1, 0, inputHor));
+                    moveDirection = transform.TransformDirection(new Vector3(inputVer * -1, 0, inputHor ));
                 }
                 else                        //在左側
                 {
