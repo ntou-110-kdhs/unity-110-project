@@ -42,6 +42,12 @@ public class FindRoadController : MonoBehaviour
         CHASE,      //追击玩家
         RETURN      //超出追击范围后返回
     }
+
+    //public enum monsterState
+    //{
+    //    get { return MonsterState; }
+    //}
+
     [SerializeField] private MonsterState currentState = MonsterState.STAND;          //默认状态为原地呼吸
 
     [SerializeField] private float[] actionWeight = { 1000, 1000 };         //设置待机时各种动作的权重，顺序依次为呼吸、观察/*、移动*/
@@ -62,8 +68,6 @@ public class FindRoadController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
 
-        //保存初始位置信息
-        initialPosition = gameObject.GetComponent<Transform>().position;
 
         //检查并修正怪物设置
         //1. 自卫半径不大于警戒半径，否则就无法触发警戒状态，直接开始追击了
@@ -89,7 +93,11 @@ public class FindRoadController : MonoBehaviour
                 setPoints[i] = agentRoadSet.transform.GetChild(i);
             }
         }
-        //GameObject.Find("agentRoadPoint").GetComponent<GameObject>();
+
+        //保存初始位置信息
+        //initialPosition = gameObject.GetComponent<Transform>().position;
+        initialPosition = setPoints[nextPoint].position; ;
+        
         tmpYoffset = agent.height / 2;
     }
 
@@ -117,11 +125,12 @@ public class FindRoadController : MonoBehaviour
             agent.SetDestination(setPoints[nextPoint].position);
             if (transform.position.x == tmpXYZ.x && transform.position.z == tmpXYZ.z && Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
             {
-                initialPosition = setPoints[nextPoint].position;
+                //initialPosition = setPoints[nextPoint].position;
                 Debug.Log("NPC position : " + transform.position);
                 isSetPoint = false;
                 nextPoint++;
                 nextPoint %= pointSetSize;
+                initialPosition = setPoints[nextPoint].position;
             }
 
         }
@@ -145,7 +154,6 @@ public class FindRoadController : MonoBehaviour
                 agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
-                //moveDirection = Vector3.zero;
                 EnemyDistanceCheck();
                 break;
 
@@ -161,7 +169,6 @@ public class FindRoadController : MonoBehaviour
                 agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
-                //moveDirection = Vector3.zero;
                 EnemyDistanceCheck();
                 break;
 
@@ -189,9 +196,6 @@ public class FindRoadController : MonoBehaviour
             case MonsterState.WARN:
                 if (!is_Warned)
                 {
-                    //Debug.Log("MonsterState.WARN");//Warning state
-                    //thisAnimator.SetTrigger("Warn");
-                    //gameObject.GetComponent<AudioSource>().Play();
                     is_Warned = true;
                 }
                 targetDirect = target.transform.position - transform.position;
@@ -202,9 +206,7 @@ public class FindRoadController : MonoBehaviour
                 //该状态下的检测指令
 
                 agent.SetDestination(transform.position);
-                //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
-                //moveDirection = Vector3.zero;
 
                 WarningCheck();
                 break;
@@ -213,7 +215,6 @@ public class FindRoadController : MonoBehaviour
             case MonsterState.CHASE:
                 if (!is_Running)
                 {
-                    //Debug.Log("MonsterState.CHASE");//Chase state
                     is_Running = true;
                 }
                 targetDirect = target.transform.position - transform.position;
@@ -224,8 +225,7 @@ public class FindRoadController : MonoBehaviour
 
                 agent.speed = runSpeed;
                 agent.SetDestination(target.transform.position);
-
-                //moveDirection = transform.TransformDirection(Vector3.forward) * runSpeed;
+                
 
                 //该状态下的检测指令
                 ChaseRadiusCheck();
@@ -234,14 +234,12 @@ public class FindRoadController : MonoBehaviour
             //返回状态，超出追击范围后返回出生位置
             case MonsterState.RETURN:
                 //朝向初始位置移动
-                targetDirect = initialPosition - transform.position;
-                targetDirect.y = 0.0f;
+                //targetDirect = initialPosition - transform.position;
+                //targetDirect.y = 0.0f;
 
                 agent.speed = walkSpeed;
                 agent.SetDestination(initialPosition);
-
-                //moveDirection = transform.TransformDirection(Vector3.forward) * walkSpeed;
-
+                
                 //targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
                 //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
                 //该状态下的检测指令
@@ -249,9 +247,6 @@ public class FindRoadController : MonoBehaviour
                 ReturnCheck();
                 break;
         }
-        //給予重力
-        //moveDirection.y -= gravity * Time.deltaTime;
-        //characterController.Move(moveDirection * Time.deltaTime);
     }
 
     /// <summary>
