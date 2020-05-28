@@ -32,7 +32,7 @@ public class MonsterWander : MonoBehaviour
         CHASE,      //追击玩家
         RETURN      //超出追击范围后返回
     }
-    private MonsterState currentState = MonsterState.STAND;          //默认状态为原地呼吸
+    [SerializeField] private MonsterState currentState = MonsterState.STAND;          //默认状态为原地呼吸
 
     public float[] actionWeight = { 1000, 1000, 4000 };         //设置待机时各种动作的权重，顺序依次为呼吸、观察、移动
     public float actRestTme;            //更换待机指令的间隔时间

@@ -244,7 +244,6 @@ public class PlayerController : MonoBehaviour
             // move direction directly from axes       
             //前進方向local coord.轉world coord.
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
-
             //以charSpeed 的速率前進
             moveDirection *= charSpeed;
 
