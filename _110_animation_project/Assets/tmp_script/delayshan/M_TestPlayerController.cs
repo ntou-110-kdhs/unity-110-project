@@ -12,8 +12,9 @@ public class M_TestPlayerController : MonoBehaviour
 
 
     /**********推移物件*********/
+    [SerializeField]
     private bool isPushingObject = false;
-    GameObject pushedObject = null;  //推動中的物件
+    GameObject pushedObject = null;  //紀錄推動中的物件  若因角色因素取消連接  會使用到
     /**********推移物件*********/
 
 
@@ -146,34 +147,41 @@ public class M_TestPlayerController : MonoBehaviour
         if (Physics.Raycast(rayObject, out hit, 1.2f))
         {
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
-            if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false &&!isShadowing)     
+            if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
-                //靠太進  讓自己往後退
-                float distance=Vector3.Distance(hit.point,this.transform.position);
-                if (distance < 0.8) transform.position -= transform.forward/4;
+                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing)
+                {
+                    //靠太進  讓自己往後退
+                    float distance = Vector3.Distance(hit.point, this.transform.position);
+                    if (distance < 0.8) transform.position -= transform.forward / 4;
 
-                hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
-                pushedObject = hit.transform.gameObject;                                         //紀錄物體
-                isPushingObject = true;
+                    hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
+                    pushedObject = hit.transform.gameObject;                                         //紀錄物體
+                    isPushingObject = true;
+                }
+                else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !isShadowing)   //再次點擊 取消
+                {
+                    if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+                    pushedObject = null;
+                    isPushingObject = false;
+                }
+                else if (!charController.isGrounded)                                                            //角色離開地面時取消
+                {
+                    if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+                    pushedObject = null;
+                    isPushingObject = false;
+                }
             }
-            else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !isShadowing)   //再次點擊 取消
-            {
-                if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
-                pushedObject = null;
-                isPushingObject = false;
-            }
-            else if (!charController.isGrounded)                                                            //離開地面時取消
-            {
-                if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
-                pushedObject = null;
-                isPushingObject = false;
-            }
+
         }
-        else
+        else                                            //RAYCAST 一離開推動的物體  就取消連接
         {
-            if(pushedObject!=null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+
+            if (pushedObject != null && pushedObject.GetComponent<FixedJoint>()!=null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
             pushedObject = null;
             isPushingObject = false;
+            
+
         }
         /**********推移物品*********/
 
@@ -256,6 +264,11 @@ public class M_TestPlayerController : MonoBehaviour
         
         moveDirection.y -= gravity * Time.deltaTime;
         charController.Move(moveDirection * Time.deltaTime);
+    }
+
+    public void stopPushing()   //會被pushable_Item調用  用於停止推動狀態
+    {
+        isPushingObject = false;
     }
 
     /// <summary>
@@ -729,11 +742,11 @@ public class M_TestPlayerController : MonoBehaviour
             camAngle = Vector3.Angle(objectForward, camDir);
             //計算CAMERA與玩家間的角度
 
-            if (camAngle <= 60)             //在前方
+            if (camAngle <= 70)             //在前方
             {
                 moveDirection = transform.TransformDirection(new Vector3(inputHor*-1, 0, inputVer*-1));
             }
-            else if (camAngle > 60 && camAngle <= 135)
+            else if (camAngle > 70 && camAngle <= 115)
             {
                 float rightAngle = 0;
                 Vector3 objectRight = this.transform.right; //給予物體右側向量
