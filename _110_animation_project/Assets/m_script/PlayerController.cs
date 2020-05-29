@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
     private bool isClimbing = false;
     // 飛行延遲
     private int shadowFlyCount = 0;
+
     /**********潛行移動*********/
 
 

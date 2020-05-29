@@ -58,9 +58,7 @@ public class TestPlayerController : MonoBehaviour
     // update
     [SerializeField] bool setAirWall= false;
 
-    [SerializeField] private Vector3 objPos = Vector3.zero;
-    [SerializeField] private Vector3 dir = Vector3.zero;
-    [SerializeField] private float dis = 0.0f;
+    
     /**********潛行移動*********/
 
 
@@ -94,7 +92,12 @@ public class TestPlayerController : MonoBehaviour
 
     // update
     //private Transform airWall;
+    [SerializeField] private Vector3 objPos = Vector3.zero;
+    [SerializeField] private Vector3 dir = Vector3.zero;
+    //[SerializeField] private float dis = 0.0f;
     [SerializeField] private Transform shadowOwner;
+    [SerializeField] private Transform shadowOwnerLight;
+    [SerializeField] private Vector3 shadowPos;
     private bool isWall;
 
     // Start is called before the first frame update
@@ -237,7 +240,7 @@ public class TestPlayerController : MonoBehaviour
                 Vector3 sunPos = lights[i].transform.rotation * new Vector3(0.0f, 0.0f, -sunDis);
 
                 // 人和太陽實際距離
-                distance = Vector3.Distance(sunPos, playerPos);
+                distance = Vector3.Distance(sunPos, playerPos);                
 
                 // ray 設定
                 // ray 起點 => 太陽位置， 方向 => 玩家位置 - 太陽位置
@@ -333,66 +336,69 @@ public class TestPlayerController : MonoBehaviour
     // update
     private void shadowObjectLocalPos()
     {
+        Vector3 lightPos = Vector3.zero;
+        float dis = 0;
+        if (shadowOwnerLight.GetComponent<Light>().type.ToString() == "Directional")
+        {
+            //Debug.Log("Directional Light");
+            // 太陽位置設定
+            // 假設太陽距離(很遠)
+            float sunDis = 10000.0f;
+            lightPos = shadowOwnerLight.rotation * new Vector3(0.0f, 0.0f, -sunDis);
+            // 常數
+            dis = 100;
+        }
+        else
+        {            
+            dis = shadowOwnerLight.GetComponent<Light>().range - Vector3.Distance(lightPos, shadowOwner.position); 
+        }
+        Ray ray = new Ray(shadowOwner.position, shadowOwner.position - lightPos);
+        
+        
+        //Debug.DrawRay(ray.origin, ray.direction * 10, Color.red);
         
 
-        if (isInShadow)
+        RaycastHit hit;
+        if(Physics.Raycast(ray, out hit, dis))
         {
-            if(shadowOwner != null)
+            if(hit.transform != transform)
             {
-                objPos = shadowOwner.position;
-
-                if (!isWall)
-                {
-                    objPos.y = transform.position.y;
-                }                
-                dir = transform.position - objPos;
-                dis = Vector3.Distance(objPos, transform.position);
-
-                if (isWall)
-                {
-                    dir.y *= 0.99f;
-                    Debug.Log(dir);
-
-                }
-                else
-                {
-                    dir *= 0.99f;
-                }
-            }            
-        }
-        else if (!isInShadow && isShadowing)
-        {
-            Vector3 newPos = shadowOwner.position;
-            if (!isWall)
-            {
-                newPos.y = objPos.y;
+                shadowPos = hit.point;
             }
-            
-            lastPos = newPos + dir;
         }
-        
-
+        if (isInShadow)
+        {            
+            dir = transform.position - shadowPos;            
+            //Debug.DrawRay(new Ray(transform.position, -dir).origin, -dir * 10.0f, Color.red);           
+            dir *= 0.995f;
+        }
+        else
+        {
+            /*Debug.Log(shadowPos);
+            Debug.Log(dir);*/
+            lastPos = shadowPos + dir;
+        }       
     }
     // update
-    private GameObject getShadowsGameObject()
+    private void setShadowsGameObject()
     {
         foreach (KeyValuePair<GameObject, GameObject> i in lightsWithShadows)
         {
             if (i.Value != null)
             {
-                Debug.Log(i.Key.transform.position);
-                return i.Value;
+
+                shadowOwner = i.Value.transform;
+                shadowOwnerLight = i.Key.transform;                                
             }
         }
-        return null;
+        
     }
     // update
     private void shadowMove()
     {
-        //shadowObjectLocalPos();
         if (isInShadow)
         {
-            shadowOwner = getShadowsGameObject().transform;
+            setShadowsGameObject();
         }
 
         shadowObjectLocalPos();
@@ -676,7 +682,8 @@ public class TestPlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
             freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
             freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
-            shadowOwner = getShadowsGameObject().transform;
+            setShadowsGameObject();
+            
             
         }
         else
