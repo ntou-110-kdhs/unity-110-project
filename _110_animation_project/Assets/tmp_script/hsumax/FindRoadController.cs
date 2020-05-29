@@ -62,7 +62,7 @@ public class FindRoadController : MonoBehaviour
     private bool is_Running = false;
     private bool is_Chased = false;
 
-
+    //GetPointToDo test;
     // Start is called before the first frame update
     void Start()
     {
@@ -97,7 +97,7 @@ public class FindRoadController : MonoBehaviour
         //保存初始位置信息
         //initialPosition = gameObject.GetComponent<Transform>().position;
         initialPosition = setPoints[nextPoint].position; ;
-        
+        //test = setPoints[nextPoint].GetComponent<GetPointToDo>();
         tmpYoffset = agent.height / 2;
     }
 
