@@ -111,8 +111,8 @@ public class M_TestPlayerController : MonoBehaviour
     {
 
         //物件推移
-        Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 0.5f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
-        //Debug.DrawRay(transform.position + new Vector3(0.0f, 0.5f, 0.0f), transform.forward,Color.green);
+        Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
+        Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
         RaycastHit hit;
         
 
@@ -144,17 +144,32 @@ public class M_TestPlayerController : MonoBehaviour
 
 
         /**********推移物品*********/
-        if (Physics.Raycast(rayObject, out hit, 1.2f))
+        if (Physics.Raycast(rayObject, out hit, 1.5f))
         {
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
                 if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing)
                 {
-                    //靠太進  讓自己往後退
-                    float distance = Vector3.Distance(hit.point, this.transform.position);
-                    if (distance < 0.8) transform.position -= transform.forward / 4;
+                    //更改角色的面向  以及位置
+                    //為此  必須先關閉角色控制器
+                    //位置為 raycast打到的點的x,z 與角色的y座標  在加上打到的點之法向量x,y*1.2(後退的效果)
+                    //轉向則是法向量的x,z的法向量
+                    charController.enabled = false;
+                    Vector3 tempVector= new Vector3(hit.point.x, this.transform.position.y, hit.point.z) + new Vector3((float)1.2 * hit.normal.x, 0, (float)1.2 * hit.normal.z);
+                    this.transform.position = tempVector;
+                    this.transform.rotation = Quaternion.LookRotation(new Vector3(hit.normal.x*-1,0, hit.normal.z*-1));
+                    charController.enabled = true;
 
+
+                    /*
+                    float distance = Vector3.Distance(hit.point, this.transform.position);
+                    Debug.Log(hit.normal);
+                    if (distance < 1) charController.Move(-1*this.transform.forward / 3);
+                    else if (distance >= 1 && distance < 1.3) charController.Move(-1 * this.transform.forward / 4);
+                    else if (distance >= 1.3 && distance < 1.5) charController.Move(-1 * this.transform.forward / 5);
+                    else if (distance >= 1.5 && distance < 2) charController.Move( this.transform.forward / 5);
+                    */
                     hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
                     pushedObject = hit.transform.gameObject;                                         //紀錄物體
                     isPushingObject = true;

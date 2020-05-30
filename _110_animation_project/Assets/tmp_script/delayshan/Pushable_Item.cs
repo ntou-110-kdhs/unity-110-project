@@ -11,9 +11,13 @@ public class Pushable_Item : MonoBehaviour
     FixedJoint fixedJoint;
     float objXVector;
     float objZVector;
+    [SerializeField]
     bool rightForwardHit = false;
+    [SerializeField]
     bool leftForwardHit = false;
+    [SerializeField]
     bool rightBackwardHit = false;
+    [SerializeField]
     bool leftBackwardHit = false;
 
     void Start()
@@ -42,25 +46,25 @@ public class Pushable_Item : MonoBehaviour
 
 
         //偵測右前 左前 右後 左後方是否為浮空
-        if (!Physics.Raycast(rayRightForward, out hit, (this.transform.localScale.y / 2) + 0.005f))
+        if (!Physics.Raycast(rayRightForward, out hit, (this.transform.localScale.y / 2) + 0.1f))
         {
             rightForwardHit = false;
         }
         else rightForwardHit = true;
 
-        if (!Physics.Raycast(rayLeftForward, out hit, (this.transform.localScale.y / 2) + 0.005f))
+        if (!Physics.Raycast(rayLeftForward, out hit, (this.transform.localScale.y / 2) + 0.1f))
         {
             leftForwardHit = false;
         }
         else leftForwardHit = true;
 
-        if (!Physics.Raycast(rayRightBackward, out hit, (this.transform.localScale.y / 2) + 0.005f))
+        if (!Physics.Raycast(rayRightBackward, out hit, (this.transform.localScale.y / 2) + 0.1f))
         {
             rightBackwardHit = false;
         }
         else rightBackwardHit = true;
 
-        if (!Physics.Raycast(rayLeftBackward, out hit, (this.transform.localScale.y / 2) + 0.005f))
+        if (!Physics.Raycast(rayLeftBackward, out hit, (this.transform.localScale.y / 2) + 0.1f))
         {
             leftBackwardHit = false;
         }
