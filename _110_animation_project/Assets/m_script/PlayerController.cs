@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
     //光源的陣列
     private List<GameObject> lights = new List<GameObject>();
     //一個光源對一個物件所製造出的影子  陣列
-    private Dictionary<string, GameObject> lightsWithShadows = new Dictionary<string, GameObject>();
+    private Dictionary<GameObject, GameObject> lightsWithShadows = new Dictionary<GameObject, GameObject>();
     /**********影子偵測*********/
 
 
@@ -50,7 +50,15 @@ public class PlayerController : MonoBehaviour
     // 是否爬牆
     private bool isClimbing = false;
     // 飛行延遲
-    private int shadowFlyCount = 0;
+    private int shadowOutCount = 0;
+
+    /**********影子邊界*********/
+    private Vector3 dir = Vector3.zero;
+    private Transform shadowOwner;
+    private Transform shadowOwnerLight;
+    private Vector3 shadowPos = Vector3.zero;
+    private Vector3 shadowMoveDir = Vector3.zero;
+    /**********影子邊界*********/
 
     /**********潛行移動*********/
 
@@ -316,11 +324,6 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>
     /// 潛入影子
-    /// parameter: 
-    /// None
-    /// member var need:
-    /// None
-    /// 
     /// </summary>
     public void transformToShadow()
     {
@@ -340,6 +343,7 @@ public class PlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
             freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
             freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
+            setShadowsGameObject();
         }
         else
         {
@@ -353,6 +357,7 @@ public class PlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = 3.0f;
             freeLookCam.m_Orbits[2].m_Height = 0.8f;
             freeLookCam.m_Orbits[2].m_Radius = 1.3f;
+            shadowOwner = null;
         }
         // 把所有mesh物件關掉/打開
         for (int i = 0; i < meshs.Count; i++)
@@ -452,15 +457,15 @@ public class PlayerController : MonoBehaviour
                 if (Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
                 {
                     //Debug.Log("Directional light make you in shadow");
-                    if (lightsWithShadows[lights[i].name] != hit.transform.gameObject)
+                    if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                     {
-                        lightsWithShadows[lights[i].name] = hit.transform.gameObject;
+                        lightsWithShadows[lights[i]] = hit.transform.gameObject;
                     }
                     isInShadow = true;
                 }
                 else
                 {
-                    lightsWithShadows[lights[i].name] = null;
+                    lightsWithShadows[lights[i]] = null;
                 }
             }
             else
@@ -478,15 +483,15 @@ public class PlayerController : MonoBehaviour
                     // 光線擋到物體不可以是玩家
                     if (distance <= lightCompnent.range && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
                     {
-                        if (lightsWithShadows[lights[i].name] != hit.transform.gameObject)
+                        if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                         {
-                            lightsWithShadows[lights[i].name] = hit.transform.gameObject;
+                            lightsWithShadows[lights[i]] = hit.transform.gameObject;
                         }
                         isInShadow = true;
                     }
                     else
                     {
-                        lightsWithShadows[lights[i].name] = null;
+                        lightsWithShadows[lights[i]] = null;
                     }
                 }
                 // Spot light 的判定 
@@ -503,15 +508,15 @@ public class PlayerController : MonoBehaviour
                     if (distance <= lightCompnent.range && angle <= lightCompnent.spotAngle / 2 && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
                     {
                         //Debug.Log("Spot light make you in shadow");
-                        if (lightsWithShadows[lights[i].name] != hit.transform.gameObject)
+                        if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                         {
-                            lightsWithShadows[lights[i].name] = hit.transform.gameObject;
+                            lightsWithShadows[lights[i]] = hit.transform.gameObject;
                         }
                         isInShadow = true;
                     }
                     else
                     {
-                        lightsWithShadows[lights[i].name] = null;
+                        lightsWithShadows[lights[i]] = null;
                     }
                 }
             }
@@ -527,7 +532,7 @@ public class PlayerController : MonoBehaviour
         foreach (Light light in lightArr)
         {
             lights.Add(light.gameObject);
-            lightsWithShadows.Add(light.transform.name, null);
+            lightsWithShadows.Add(light.gameObject, null);
         }
     }
     /// <summary>
@@ -535,7 +540,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void printWhatShadowsIn()
     {
-        foreach (KeyValuePair<string, GameObject> i in lightsWithShadows)
+        foreach (KeyValuePair<GameObject, GameObject> i in lightsWithShadows)
         {
             if (i.Value != null)
             {
@@ -557,12 +562,68 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void shadowObjectLocalPos()
+    {
+        Vector3 lightPos = Vector3.zero;
+        float dis = 0;
+        if (shadowOwnerLight.GetComponent<Light>().type.ToString() == "Directional")
+        {
+            //Debug.Log("Directional Light");
+            // 太陽位置設定
+            // 假設太陽距離(很遠)
+            float sunDis = 10000.0f;
+            lightPos = shadowOwnerLight.rotation * new Vector3(0.0f, 0.0f, -sunDis);
+            // 常數
+            dis = 100;
+        }
+        else
+        {
+            dis = shadowOwnerLight.GetComponent<Light>().range - Vector3.Distance(lightPos, shadowOwner.position);
+        }
+        Ray ray = new Ray(shadowOwner.position, shadowOwner.position - lightPos);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, dis))
+        {
+            if (hit.transform != transform)
+            {
+                shadowMoveDir = shadowPos - hit.point;
+                shadowPos = hit.point;
+
+            }
+
+        }
+        if (isInShadow)
+        {
+            dir = transform.position - shadowPos;
+        }
+
+    }
+
+
+    private void setShadowsGameObject()
+    {
+        foreach (KeyValuePair<GameObject, GameObject> i in lightsWithShadows)
+        {
+            if (i.Value != null)
+            {
+
+                shadowOwner = i.Value.transform;
+                shadowOwnerLight = i.Key.transform;
+            }
+        }
+    }
+
     /// <summary>
     /// 影子移動    
     /// </summary>
-
     private void shadowMove()
     {
+        if (isInShadow)
+        {
+            setShadowsGameObject();
+        }
+
+        shadowObjectLocalPos();
         //水平鍵(A,D)有按與否
         inputHor = Input.GetAxis("Horizontal");
         //垂直鍵(W,S)有按與否
@@ -626,20 +687,21 @@ public class PlayerController : MonoBehaviour
             }
         }
         // 避免斜坡之後人整個飄在天上
-        if (isClimbing && !isWall)
+        if ((isClimbing && !isWall) || !isInShadow)
         {
-            shadowFlyCount++;
-            if (shadowFlyCount >= 20)
+            if (!isInShadow)
             {
-                shadowFlyCount = 0;
-                isClimbing = false;
+                shadowOutCount += 10;
+            }
+            else
+            {
+                shadowOutCount++;
             }
         }
         else
         {
-            shadowFlyCount = 0;
+            shadowOutCount = 0;
         }
-
         // 移動
         if (inputHor != 0 || inputVer != 0)
         {
@@ -686,8 +748,6 @@ public class PlayerController : MonoBehaviour
                 {
                     dirY = 1;
                 }
-
-
                 // 確定有牆&&同時開始爬 (離地) 了
                 if (!charController.isGrounded)
                 {
@@ -710,20 +770,24 @@ public class PlayerController : MonoBehaviour
             }
             moveDirection *= charSpeed;
         }
-        // 爬牆失效時
-        if (charController.isGrounded || !isInShadow || Input.GetKeyDown(KeyCode.E))
-        {
-            isClimbing = false;
-            isWall = false;
-        }
         moveDirection.y -= gravity * Time.deltaTime;
-        if (!isClimbing && isShadowing && (!isInShadow || (!charController.isGrounded && !isWall)))
+        if (!isInShadow && shadowMoveDir == Vector3.zero)
         {
+            transform.position = shadowPos + dir;
+        }
+        else
+        {
+            charController.Move(moveDirection * Time.deltaTime);
+        }
+        //退出影子條件
+        if (/*!isInShadow || */shadowOutCount >= 20 || (!isClimbing && (!charController.isGrounded && !isWall)) || Input.GetKeyDown(KeyCode.E))
+        {
+            shadowOutCount = 0;
             isShadowing = false;
+            isClimbing = false;
             transformToShadow();
             gravity = 20;
         }
-        charController.Move(moveDirection * Time.deltaTime);
     }
 
     private void dragMove()             //拖拉物體時的移動
