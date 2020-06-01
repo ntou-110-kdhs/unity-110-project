@@ -173,18 +173,21 @@ public class PlayerController : MonoBehaviour
                     hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
                     pushedObject = hit.transform.gameObject;                                         //紀錄物體
                     isPushingObject = true;
+                    
                 }
                 else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !isShadowing)   //再次點擊 取消
                 {
                     if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
                     pushedObject = null;
                     isPushingObject = false;
+                    
                 }
                 else if (!charController.isGrounded)                                                            //角色離開地面時取消
                 {
                     if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
                     pushedObject = null;
                     isPushingObject = false;
+                    
                 }
             }
 
@@ -204,18 +207,21 @@ public class PlayerController : MonoBehaviour
         {
             //潛行後移動的模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
+            animateController.notPushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             shadowMove();
         }
         else if (isPushingObject)
         {
             //推移物品移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
+            animateController.pushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             dragMove();
         }
         else
         {
             //移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
+            animateController.notPushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             move();
         }
     }
@@ -756,7 +762,7 @@ public class PlayerController : MonoBehaviour
 
             if (camAngle <= 70)             //在前方
             {
-                moveDirection = transform.TransformDirection(new Vector3(inputHor * -1, 0, inputVer * -1));
+                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
             }
             else if (camAngle > 70 && camAngle <= 115)
             {
@@ -767,16 +773,16 @@ public class PlayerController : MonoBehaviour
 
                 if (rightAngle <= 90)       //在右側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(inputVer * -1, 0, inputHor));
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
                 }
                 else                        //在左側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(inputVer, 0, inputHor * -1));
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
                 }
             }
             else                            //在後方
             {
-                moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer));
+                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
             }
 
             moveDirection *= charSpeed;

@@ -10,13 +10,11 @@ public class M_TestPlayerController : MonoBehaviour
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
 
-
     /**********推移物件*********/
     [SerializeField]
     private bool isPushingObject = false;
     GameObject pushedObject = null;  //紀錄推動中的物件  若因角色因素取消連接  會使用到
     /**********推移物件*********/
-
 
     /**********影子偵測*********/
     //你人是否站在影子上
@@ -45,10 +43,7 @@ public class M_TestPlayerController : MonoBehaviour
     private bool isClimbing = false;
     // 飛行延遲
     private int shadowFlyCount = 0;
-    [SerializeField] private bool climbLeft = false;
-    [SerializeField] private bool climbRight = false;
-    [SerializeField] private bool climbForward = false;
-    [SerializeField] private bool climbBack = false;
+
     /**********潛行移動*********/
 
 
@@ -112,9 +107,8 @@ public class M_TestPlayerController : MonoBehaviour
 
         //物件推移
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
-        Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
+        //Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
         RaycastHit hit;
-        
 
         // 偵測影子
         shadowDetect();
@@ -138,10 +132,8 @@ public class M_TestPlayerController : MonoBehaviour
                 transformToShadow();
                 delayCount = Time.time;
             }
-
         }
         /**********潛入影子*********/
-
 
         /**********推移物品*********/
         if (Physics.Raycast(rayObject, out hit, 1.5f))
@@ -156,9 +148,9 @@ public class M_TestPlayerController : MonoBehaviour
                     //位置為 raycast打到的點的x,z 與角色的y座標  在加上打到的點之法向量x,y*1.2(後退的效果)
                     //轉向則是法向量的x,z的法向量
                     charController.enabled = false;
-                    Vector3 tempVector= new Vector3(hit.point.x, this.transform.position.y, hit.point.z) + new Vector3((float)1.2 * hit.normal.x, 0, (float)1.2 * hit.normal.z);
+                    Vector3 tempVector = new Vector3(hit.point.x, this.transform.position.y, hit.point.z) + new Vector3((float)1.2 * hit.normal.x, 0, (float)1.2 * hit.normal.z);
                     this.transform.position = tempVector;
-                    this.transform.rotation = Quaternion.LookRotation(new Vector3(hit.normal.x*-1,0, hit.normal.z*-1));
+                    this.transform.rotation = Quaternion.LookRotation(new Vector3(hit.normal.x * -1, 0, hit.normal.z * -1));
                     charController.enabled = true;
 
 
@@ -192,14 +184,13 @@ public class M_TestPlayerController : MonoBehaviour
         else                                            //RAYCAST 一離開推動的物體  就取消連接
         {
 
-            if (pushedObject != null && pushedObject.GetComponent<FixedJoint>()!=null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+            if (pushedObject != null && pushedObject.GetComponent<FixedJoint>() != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
             pushedObject = null;
             isPushingObject = false;
-            
+
 
         }
         /**********推移物品*********/
-
 
         if (isShadowing)
         {
@@ -207,7 +198,7 @@ public class M_TestPlayerController : MonoBehaviour
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
             shadowMove();
         }
-        else if ( isPushingObject)
+        else if (isPushingObject)
         {
             //推移物品移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
@@ -261,7 +252,6 @@ public class M_TestPlayerController : MonoBehaviour
             // move direction directly from axes       
             //前進方向local coord.轉world coord.
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
-
             //以charSpeed 的速率前進
             moveDirection *= charSpeed;
 
@@ -276,10 +266,10 @@ public class M_TestPlayerController : MonoBehaviour
         // when the moveDirection is multiplied by deltaTime). This is because gravity should be applied
         // as an acceleration (ms^-2)
         //給予重力
-        
         moveDirection.y -= gravity * Time.deltaTime;
         charController.Move(moveDirection * Time.deltaTime);
     }
+
 
     public void stopPushing()   //會被pushable_Item調用  用於停止推動狀態
     {
@@ -575,10 +565,10 @@ public class M_TestPlayerController : MonoBehaviour
         RaycastHit hit;
         bool isWall = false;
 
-        climbLeft = false;
-        climbRight = false;
-        climbForward = false;
-        climbBack = false;
+        bool climbLeft = false;
+        bool climbRight = false;
+        bool climbForward = false;
+        bool climbBack = false;
 
         // 避免出錯 都先初始化
         gravity = 20;
@@ -722,7 +712,6 @@ public class M_TestPlayerController : MonoBehaviour
         charController.Move(moveDirection * Time.deltaTime);
     }
 
-
     private void dragMove()             //拖拉物體時的移動
     {
         //水平鍵(A,D)有按與否
@@ -759,7 +748,7 @@ public class M_TestPlayerController : MonoBehaviour
 
             if (camAngle <= 70)             //在前方
             {
-                moveDirection = transform.TransformDirection(new Vector3(inputHor*-1, 0, inputVer*-1));
+                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
             }
             else if (camAngle > 70 && camAngle <= 115)
             {
@@ -770,16 +759,16 @@ public class M_TestPlayerController : MonoBehaviour
 
                 if (rightAngle <= 90)       //在右側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(inputVer * -1, 0, inputHor ));
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
                 }
                 else                        //在左側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(inputVer, 0, inputHor * -1));
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
                 }
             }
             else                            //在後方
             {
-                moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer));
+                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
             }
 
             moveDirection *= charSpeed;

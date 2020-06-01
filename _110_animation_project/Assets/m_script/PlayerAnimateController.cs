@@ -11,12 +11,14 @@ public class PlayerAnimateController : MonoBehaviour
     [SerializeField]
     private Transform RightHandTarget;
 
+    bool isPushingObject = false;   //是否正在推動物體
 
     private void Start()
     {
         animator=GetComponent<Animator>();      //指定此物件的ANIMATOR
     }
 
+    /***********影子動畫***********/
     public void jumpIntoShadow()                        //潛入影子動畫
     {
         resetAllTrigger();
@@ -37,6 +39,24 @@ public class PlayerAnimateController : MonoBehaviour
 
     }
 
+    /***********影子動畫***********/
+
+    /***********推移動畫***********/
+    public void pushingObject()                         //讓playercontroller傳遞  正在推動物體  並改變動畫控制器的isPushingObject
+    {
+        animator.SetBool("pushing",true);
+        isPushingObject = true;
+    }
+
+    public void notPushingObject()                         //讓playercontroller傳遞  沒有推動物體  並改變動畫控制器的isPushingObject
+    {
+        animator.SetBool("pushing", false);
+        isPushingObject = false;
+    }
+
+    /***********推移動畫***********/
+
+
     public void attackStart()                           //攻擊動畫開始   能開始傷害NPC
     {
         Debug.Log("on attack");
@@ -54,6 +74,7 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("walking");
         animator.ResetTrigger("Attacking");
         animator.ResetTrigger("jump");
+        animator.ResetTrigger("pushing");
     }
 
 
@@ -87,54 +108,92 @@ public class PlayerAnimateController : MonoBehaviour
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))       //移動ANIMATION
         {
             animator.ResetTrigger("Idle");
-            animator.SetTrigger("walking"); //觸發TRIGGER
-            //Debug.Log("RR");
-            //根據不同的輸入 給予浮點數不同的值
 
-            if (Input.GetKey(KeyCode.W))
+            //若isPushingObject為TURE 代表角色正在推動物體  則不觸發WALKING
+            if (isPushingObject)
             {
-                if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
-                animator.SetFloat("forward", forward);
+                animator.SetTrigger("pushing");
+                animator.ResetTrigger("walking");
             }
-            else if (Input.GetKey(KeyCode.S))
-            {
-                if (forward > -1f) forward -= 0.1f;      //限制forward在0~1之間
-                animator.SetFloat("forward", forward);
-            }
-            else                                        //沒有輸入W或S   forward將回歸至0
-            {
-
-                if (forward >= 0.1) forward -= 0.1f;
-                else if (forward <= -0.1) forward += 0.1f;
-
-                animator.SetFloat("forward", forward);      //將前進 後退 歸0
+            else 
+            { 
+                animator.SetTrigger("walking");
+                animator.ResetTrigger("pushing");
             }
 
 
-            if (Input.GetKey(KeyCode.D))
+            /**********推移移動**********/
+            if (isPushingObject)
             {
-                if (right < 1f) right += 0.1f;          //限制right在0~1之間
-                animator.SetFloat("right", right);
+                if (Input.GetKey(KeyCode.W))
+                {
+                    if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
+                    animator.SetFloat("forward", forward);
+                }
+                else if (Input.GetKey(KeyCode.S))
+                {
+                    if (forward > -1f) forward -= 0.1f;      //限制forward在0~1之間
+                    animator.SetFloat("forward", forward);
+                }
+                else                                        //沒有輸入W或S   forward將回歸至0
+                {
+
+                    if (forward >= 0.1) forward -= 0.1f;
+                    else if (forward <= -0.1) forward += 0.1f;
+
+                    animator.SetFloat("forward", forward);      //將前進 後退 歸0
+                }
             }
-            else if (Input.GetKey(KeyCode.A))
+            /**********推移移動**********/
+            /**********一般移動**********/
+            else
             {
-                if (right > -1f) right -= 0.1f;         //限制right在0~1之間
-                animator.SetFloat("right", right);
+                if (Input.GetKey(KeyCode.W))
+                {
+                    if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
+                    animator.SetFloat("forward", forward);
+                }
+                else if (Input.GetKey(KeyCode.S))
+                {
+                    if (forward > -1f) forward -= 0.1f;      //限制forward在0~1之間
+                    animator.SetFloat("forward", forward);
+                }
+                else                                        //沒有輸入W或S   forward將回歸至0
+                {
+
+                    if (forward >= 0.1) forward -= 0.1f;
+                    else if (forward <= -0.1) forward += 0.1f;
+
+                    animator.SetFloat("forward", forward);      //將前進 後退 歸0
+                }
+
+                if (Input.GetKey(KeyCode.D))
+                {
+                    if (right < 1f) right += 0.1f;          //限制right在0~1之間
+                    animator.SetFloat("right", right);
+                }
+                else if (Input.GetKey(KeyCode.A))
+                {
+                    if (right > -1f) right -= 0.1f;         //限制right在0~1之間
+                    animator.SetFloat("right", right);
+                }
+                else                                        //沒有輸入W或S   right將回歸至0
+                {
+                    if (right >= 0.1) right -= 0.1f;
+                    else if (right <= -0.1) right += 0.1f;
+                    animator.SetFloat("right", right);
+                }
             }
-            else                                        //沒有輸入W或S   right將回歸至0
-            {
-                if (right >= 0.1) right -= 0.1f;
-                else if (right <= -0.1) right += 0.1f;
-                animator.SetFloat("right", right);
-            }
-            //根據不同的輸入 給予浮點數不同的值
+            /**********一般移動**********/
+
+
 
         }
         else
         {
             //animator.SetTrigger("Idle");
             animator.ResetTrigger("walking");//重製TRIGGER
-
+            animator.ResetTrigger("pushing");
 
         }
 
