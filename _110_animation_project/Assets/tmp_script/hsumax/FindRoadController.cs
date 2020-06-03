@@ -160,7 +160,7 @@ public class FindRoadController : MonoBehaviour
                     RandomAction();         //随机切换指令
                 }
 
-                agent.stoppingDistance = 0f;
+                //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
                 EnemyDistanceCheck();
@@ -175,7 +175,7 @@ public class FindRoadController : MonoBehaviour
                     currentState = MonsterState.RETURN;
                 }
 
-                agent.stoppingDistance = 0f;
+                //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
                 EnemyDistanceCheck();
@@ -214,7 +214,8 @@ public class FindRoadController : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
                 //该状态下的检测指令
 
-                agent.SetDestination(transform.position);
+                agent.speed = walkSpeed;
+                agent.SetDestination(target.transform.position);
                 agent.updateRotation = true;
 
                 WarningCheck();
@@ -232,6 +233,7 @@ public class FindRoadController : MonoBehaviour
                 targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
 
+                //應根據距離來將runspeed降速
                 agent.speed = runSpeed;
                 agent.SetDestination(target.transform.position);
                 
