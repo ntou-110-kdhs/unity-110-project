@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
+using UnityEditor;
 using Cinemachine;
 
 [RequireComponent(typeof(NavMeshAgent))]
@@ -7,8 +8,11 @@ public class FindRoadController : MonoBehaviour
 {
     [SerializeField] private Transform target;//target to follow
     [SerializeField] private NavMeshAgent agent;
+    //private Ray rayToTarget;
+    private RaycastHit hitInfo;
 
     [SerializeField] private GameObject agentRoadSet;
+    [SerializeField] private Transform agentRoadSubSet;
     [SerializeField] private Transform[] setPoints;
     [SerializeField] private int pointSetSize = 0;
     [SerializeField] private int nextPoint = 0;
@@ -24,11 +28,15 @@ public class FindRoadController : MonoBehaviour
     //[SerializeField] private float gravity = 20.0f;
 
     [SerializeField] private float wanderRadius = 5f;          //游走半径，移动状态下，如果超出游走半径会返回出生位置
-    [SerializeField] private float alertRadius = 8f;         //警戒半径，玩家进入后怪物会发出警告，并一直面朝玩家
     [SerializeField] private float defendRadius = 6f;          //自卫半径，玩家进入后怪物会追击玩家，当距离<攻击距离则会发动攻击（或者触发战斗）
+    [SerializeField] private float alertRadius = 8f;         //警戒半径，玩家进入后怪物会发出警告，并一直面朝玩家
     [SerializeField] private float chaseRadius = 10f;            //追击半径，当怪物超出追击半径后会放弃追击，返回追击起始位置
 
-    [SerializeField] private float attackRange = 3f;            //攻击距离
+    [SerializeField] private float attackRadius = 3f;            //攻击距离
+
+    [Range(0, 180)]
+    [SerializeField] private float alertAngle;         //視角範圍
+
     [SerializeField] private float walkSpeed;          //移动速度
     [SerializeField] private float runSpeed;          //跑动速度
     [SerializeField] private float turnSpeed;         //转身速度，建议0.1
@@ -68,12 +76,11 @@ public class FindRoadController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
 
-
         //检查并修正怪物设置
         //1. 自卫半径不大于警戒半径，否则就无法触发警戒状态，直接开始追击了
         defendRadius = Mathf.Min(alertRadius, defendRadius);
         //2. 攻击距离不大于自卫半径，否则就无法触发追击状态，直接开始战斗了
-        attackRange = Mathf.Min(defendRadius, attackRange);
+        attackRadius = Mathf.Min(defendRadius, attackRadius);
         //3. 游走半径不大于追击半径，否则怪物可能刚刚开始追击就返回出生点
         wanderRadius = Mathf.Min(chaseRadius, wanderRadius);
 
@@ -83,20 +90,22 @@ public class FindRoadController : MonoBehaviour
         if (agentRoadSet == null)
         {
             agentRoadSet = GameObject.Find("agentRoadPoint");
-            pointSetSize = agentRoadSet.transform.childCount;
+            agentRoadSubSet = agentRoadSet.transform.Find(gameObject.name);
+            if(agentRoadSubSet!=null)
+                pointSetSize = agentRoadSubSet.transform.childCount;
         } 
         setPoints = new Transform[pointSetSize];
         for (int i = 0; i < pointSetSize; i++) 
         {
             if (setPoints[i] == null)
             {
-                setPoints[i] = agentRoadSet.transform.GetChild(i);
+                setPoints[i] = agentRoadSubSet.transform.GetChild(i);
             }
         }
 
         //保存初始位置信息
         //initialPosition = gameObject.GetComponent<Transform>().position;
-        initialPosition = setPoints[nextPoint].position; ;
+        initialPosition = nextPoint > 0?setPoints[nextPoint].position: transform.position ;
         //test = setPoints[nextPoint].GetComponent<GetPointToDo>();
         tmpYoffset = agent.height / 2;
     }
@@ -247,6 +256,8 @@ public class FindRoadController : MonoBehaviour
                 ReturnCheck();
                 break;
         }
+
+
     }
 
     /// <summary>
@@ -286,12 +297,21 @@ public class FindRoadController : MonoBehaviour
     void EnemyDistanceCheck()
     {
         diatanceToPlayer = Vector3.Distance(target.transform.position, transform.position);
-        if (diatanceToPlayer < attackRange)
+        if (!alertAngleWithRaycast() && (currentState == MonsterState.STAND || currentState == MonsterState.CHECK || currentState == MonsterState.RETURN))
         {
-            //Debug.Log("Attack EnemyDistanceCheck");
+            //currentState = MonsterState.STAND;
+            return;
+        }
+
+        if (diatanceToPlayer < attackRadius)
+        {
+            Debug.Log("Attack EnemyDistanceCheck");
+            //if currentState != MonsterState.CHASE
+            currentState = MonsterState.CHASE;
         }
         else if (diatanceToPlayer < defendRadius)
         {
+
             currentState = MonsterState.CHASE;
         }
         else if (diatanceToPlayer < alertRadius)
@@ -306,6 +326,13 @@ public class FindRoadController : MonoBehaviour
     void WarningCheck()
     {
         diatanceToPlayer = Vector3.Distance(target.transform.position, transform.position);
+        if (!alertAngleWithRaycast())
+        {
+            //currentState = MonsterState.STAND;
+            currentState = MonsterState.RETURN;
+            return;
+        }
+        //if (alertAngleWithRaycast()) return;
         if (diatanceToPlayer < defendRadius)
         {
             is_Warned = false;
@@ -323,12 +350,14 @@ public class FindRoadController : MonoBehaviour
     /// <summary>
     /// 游走状态检测，检测敌人距离及游走是否越界
     /// </summary>
+    ///
+    /*
     void WanderRadiusCheck()
     {
         diatanceToPlayer = Vector3.Distance(target.transform.position, transform.position);
         diatanceToInitial = Vector3.Distance(transform.position, initialPosition);
 
-        if (diatanceToPlayer < attackRange)
+        if (diatanceToPlayer < attackRadius)
         {
             //Debug.Log("Attack WanderRadiusCheck");
         }
@@ -347,7 +376,7 @@ public class FindRoadController : MonoBehaviour
             targetRotation = Quaternion.LookRotation(initialPosition - transform.position, Vector3.up);
         }
     }
-
+    */
     /// <summary>
     /// 追击状态检测，检测敌人是否进入攻击范围以及是否离开警戒范围
     /// </summary>
@@ -356,7 +385,9 @@ public class FindRoadController : MonoBehaviour
         diatanceToPlayer = Vector3.Distance(target.transform.position, transform.position);
         diatanceToInitial = Vector3.Distance(transform.position, initialPosition);
 
-        if (diatanceToPlayer < attackRange)
+        //if (alertAngleWithRaycast()) return;
+
+        if (diatanceToPlayer < attackRadius)
         {
             //Debug.Log("Attack ChaseRadiusCheck");
         }
@@ -382,10 +413,68 @@ public class FindRoadController : MonoBehaviour
         }
         //Debug.Log("Return state");
     }
+    /// <summary>
+    /// 角度 與 隔牆判定
+    /// </summary>
+    private bool alertAngleWithRaycast()
+    {
+        bool ret = false;
+        Vector3 targetTransTmp = target.transform.position,transTmp = transform.position;
+        targetTransTmp.y += 1;
+        transTmp.y += 1;
+        Vector3 targetDirect = targetTransTmp - transTmp;
+        float angle = Vector3.Angle(targetDirect, transform.forward);
+
+        //if (Physics.Raycast(transTmp, targetDirect, out hitInfo))
+        //    Debug.Log("hitInfo : " + hitInfo.collider.gameObject.name);
+        //else
+        //    Debug.Log("Raycast not active.");
+        //Debug.DrawLine(transTmp, transTmp + targetDirect.normalized * alertRadius, Color.red);
+        bool aA = angle <= alertAngle,isHitting = Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius);
+        bool isEqualTar = isHitting ? hitInfo.collider.gameObject.transform == target : false;
+        //if (angle <= alertAngle && Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius) && hitInfo.collider.gameObject == target)
+        if (aA && isHitting && isEqualTar)
+            //if ((angle <= alertAngle && hitInfo.collider.gameObject == target) || hitInfo.collider.gameObject != target)
+        {
+            //Debug.Log("Alertistrue is True.");
+            //if(angle <= alertAngle)
+            //Debug.Log("angle <= alertAngle, angle : " + angle);
+            //Debug.Log("hitInfo : " + hitInfo.collider.gameObject.name);
+            ret = true;
+        }
+        else
+        {
+            //Debug.Log("Alertistrue is False.");
+            //Debug.Log("hitInfo : " + hitInfo.collider.gameObject.name);
+            ret = false;
+        }
+        Debug.Log("angle <= alertAngle : " + aA);
+        Debug.Log("Physics.Raycast : " + isHitting);
+        Debug.Log("hitInfo.collider.gameObject == target : " + isEqualTar);
+        //Debug.Log("target : " + isEqualTar);
+
+        return ret;
+    }
+    private void OnDrawGizmosSelected()
+    {
+        //Debug.Log("OnDrawGizmosSelected");
+        Vector3 Position = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
+        Color tmpBlue = Color.blue;
+        tmpBlue.a = 0.5f;
+        Handles.color = tmpBlue;
+        Vector3 StartLine = Quaternion.Euler(0, -alertAngle, 0) * transform.forward;
+        Handles.DrawSolidArc(Position, transform.up, StartLine, alertAngle, alertRadius);
+        //Handles.color = color;
+        Color tmpRed = Color.red;
+        tmpRed.a = 0.5f;
+        Handles.color = tmpRed;
+        StartLine = Quaternion.Euler(0, alertAngle, 0) * transform.forward;
+        Handles.DrawSolidArc(Position, transform.up, StartLine, -alertAngle, alertRadius);
+    }
     //void OnDrawGizmosSelected()
     //{
     //    Gizmos.color = Color.red;
-    //    Gizmos.DrawWireSphere(transform.position, attackRange);
+    //    Gizmos.DrawWireSphere(transform.position, attackRadius);
     //    Gizmos.color = Color.green;
     //    Gizmos.DrawWireSphere(transform.position, defendRadius);
     //    Gizmos.color = Color.yellow;
