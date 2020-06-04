@@ -420,7 +420,7 @@ public class FindRoadController : MonoBehaviour
     /// </summary>
     private bool alertAngleWithRaycast()
     {
-        bool ret = false;
+        bool ret = false,isShadowing = target.GetComponent<PlayerController>().getIsShadowing;
         Vector3 targetTransTmp = target.transform.position,transTmp = transform.position;
         targetTransTmp.y += 1;
         transTmp.y += 1;
@@ -435,7 +435,7 @@ public class FindRoadController : MonoBehaviour
         bool aA = angle <= alertAngle,isHitting = Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius);
         bool isEqualTar = isHitting ? hitInfo.collider.gameObject.transform == target : false;
         //if (angle <= alertAngle && Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius) && hitInfo.collider.gameObject == target)
-        if (aA && isHitting && isEqualTar)
+        if (aA && isHitting && isEqualTar && !isShadowing)
             //if ((angle <= alertAngle && hitInfo.collider.gameObject == target) || hitInfo.collider.gameObject != target)
         {
             //Debug.Log("Alertistrue is True.");

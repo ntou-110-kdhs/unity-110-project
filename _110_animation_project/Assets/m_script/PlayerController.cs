@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     /**********潛入影子*********/
     //你人是否"進入"影子內
     [SerializeField] private bool isShadowing = false;
+    public bool getIsShadowing { get { return isShadowing; }}
     //人物身上的mesh物件陣列
     private List<GameObject> meshs = new List<GameObject>();
     //水圈圈粒子物件
