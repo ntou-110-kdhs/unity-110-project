@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerAnimateController : MonoBehaviour
 {
     Animator animator;              //設置空的ANIMATOR變數
-    float forward=0;
+    public float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
     [SerializeField]
@@ -54,6 +54,25 @@ public class PlayerAnimateController : MonoBehaviour
         isPushingObject = false;
     }
 
+    public void addForward()                                //因為推移物品時 W S 不一定代表前進後退，因此需要這2個函式讓PLAYERCONTROLLER呼叫
+    {
+        if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
+        animator.SetFloat("forward", forward);
+    }
+
+    public void minusForward()
+    {
+        if (forward > -1f) forward -= 0.1f;      //限制forward在0~1之間
+        animator.SetFloat("forward", forward);
+    }
+
+    public void setToZero()                                     //用來規0
+    {
+        if (forward >= 0.1) forward -= 0.1f;
+        else if (forward <= -0.1) forward += 0.1f;
+
+        animator.SetFloat("forward", forward);      //將前進 後退 歸0
+    }
     /***********推移動畫***********/
 
 
@@ -74,7 +93,6 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("walking");
         animator.ResetTrigger("Attacking");
         animator.ResetTrigger("jump");
-        animator.ResetTrigger("pushing");
     }
 
 
@@ -112,19 +130,17 @@ public class PlayerAnimateController : MonoBehaviour
             //若isPushingObject為TURE 代表角色正在推動物體  則不觸發WALKING
             if (isPushingObject)
             {
-                animator.SetTrigger("pushing");
                 animator.ResetTrigger("walking");
             }
             else 
             { 
                 animator.SetTrigger("walking");
-                animator.ResetTrigger("pushing");
             }
 
 
             /**********推移移動**********/
             if (isPushingObject)
-            {
+            {   /*
                 if (Input.GetKey(KeyCode.W))
                 {
                     if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
@@ -143,6 +159,7 @@ public class PlayerAnimateController : MonoBehaviour
 
                     animator.SetFloat("forward", forward);      //將前進 後退 歸0
                 }
+                */
             }
             /**********推移移動**********/
             /**********一般移動**********/
@@ -193,7 +210,18 @@ public class PlayerAnimateController : MonoBehaviour
         {
             //animator.SetTrigger("Idle");
             animator.ResetTrigger("walking");//重製TRIGGER
-            animator.ResetTrigger("pushing");
+
+            /*****移動回歸*****/
+            //沒有輸入W或S   forward將回歸至0
+            if (forward >= 0.1) forward -= 0.1f;
+            else if (forward <= -0.1) forward += 0.1f;
+            animator.SetFloat("forward", forward);      //將前進 後退 歸0
+
+            //沒有輸入A或D   right將回歸至0
+            if (right >= 0.1) right -= 0.1f;
+            else if (right <= -0.1) right += 0.1f;
+            animator.SetFloat("right", right);
+            /*****移動回歸*****/
 
         }
 

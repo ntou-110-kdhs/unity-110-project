@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 94c05cd796722484fb6fff30340360c4
+guid: 40f2a248b4a464b49b998262d0473a51
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Arm_Stretching
+    second: pull_start
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,18 +35,18 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Arm_Stretching
+      name: pull_start
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0
-      lastFrame: 532
+      lastFrame: 51
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0

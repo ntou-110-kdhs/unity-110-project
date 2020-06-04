@@ -22,6 +22,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private bool isPushingObject = false;
     GameObject pushedObject = null;  //紀錄推動中的物件  若因角色因素取消連接  會使用到
+    float pushTime = -10;           //按下前進的時間  大於一定時間才會開始移動
+    bool isFirstIn = true;       //確認是否為第一次進入推動狀態  會在FORWARD為0時 重置
     /**********推移物件*********/
 
     /**********影子偵測*********/
@@ -816,6 +818,8 @@ public class PlayerController : MonoBehaviour
 
             //計算CAMERA與玩家間的角度
             float camAngle = 0;
+
+
             Vector3 objectForward = this.transform.forward;
             Vector3 camDir = Vector3.zero;
             camDir = freeLookCam.transform.position - this.transform.position;
@@ -824,9 +828,39 @@ public class PlayerController : MonoBehaviour
             camAngle = Vector3.Angle(objectForward, camDir);
             //計算CAMERA與玩家間的角度
 
+            //若向前速度 -0.1<=速度<=0.1  重置isFirstIn
+            if (animateController.forward >= -0.1 && animateController.forward <= 0.1) isFirstIn = true;
+
             if (camAngle <= 70)             //在前方
             {
-                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
+                /*************配合動畫************/
+                //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                if ((inputVer * -1 > 0.1 || inputVer * -1 < -0.1) && isFirstIn)
+                {
+                    pushTime = Time.time;
+                    isFirstIn = false;
+                }
+                //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                //若推動時間小於1秒  停止移動
+                if (Time.time - pushTime < 1f)
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                    //Debug.Log(pushTime);
+                }
+                else
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
+                }
+                /*************配合動畫************/
+
+
+                //控制FORWARD 變數
+                if (inputVer * -1 > 0.1) animateController.addForward();
+                else if (inputVer * -1 < -0.1) animateController.minusForward();
+                else animateController.setToZero();
+                //Debug.Log("forward");
+                //控制FORWARD 變數
             }
             else if (camAngle > 70 && camAngle <= 115)
             {
@@ -837,20 +871,114 @@ public class PlayerController : MonoBehaviour
 
                 if (rightAngle <= 90)       //在右側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
+                    /*************配合動畫************/
+                    //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                    if ((inputHor > 0.1 || inputHor < -0.1) && isFirstIn)
+                    {
+                        pushTime = Time.time;
+                        isFirstIn = false;
+                    }
+                    //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                    //若推動時間小於1秒  停止移動
+                    if (Time.time - pushTime < 1f)
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                        //Debug.Log(pushTime);
+                    }
+                    else
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
+                    }
+                    /*************配合動畫************/
+
+
+
+
+                    //控制FORWARD 變數
+                    if (inputHor > 0.1) animateController.addForward();
+                    else if (inputHor < -0.1) animateController.minusForward();
+                    else animateController.setToZero();
+                    //控制FORWARD 變數
+                    //Debug.Log("right");
                 }
                 else                        //在左側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
+                    /*************配合動畫************/
+                    //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                    if ((inputHor * -1 > 0.1 || inputHor * -1 < -0.1) && isFirstIn)
+                    {
+                        pushTime = Time.time;
+                        isFirstIn = false;
+                    }
+                    //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                    //若推動時間小於1秒  停止移動
+                    if (Time.time - pushTime < 1f)
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                        //Debug.Log(pushTime);
+                    }
+                    else
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
+                    }
+                    /*************配合動畫************/
+
+
+
+
+                    //控制FORWARD 變數
+                    if (inputHor * -1 > 0.1) animateController.addForward();
+                    else if (inputHor * -1 < -0.1) animateController.minusForward();
+
+                    else animateController.setToZero();
+                    //控制FORWARD 變數
+                    Debug.Log("left");
+
+
                 }
             }
             else                            //在後方
             {
-                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
+                /*************配合動畫************/
+                //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                if ((inputVer > 0.1 || inputVer < -0.1) && isFirstIn)
+                {
+                    pushTime = Time.time;
+                    isFirstIn = false;
+                }
+                //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                //若推動時間小於1秒  停止移動
+                if (Time.time - pushTime < 1f)
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                    //Debug.Log(pushTime);
+                }
+                else
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
+                }
+                /*************配合動畫************/
+
+
+
+
+                //控制FORWARD 變數
+                if (inputVer > 0.1) animateController.addForward();
+                else if (inputVer < -0.1) animateController.minusForward();
+                else animateController.setToZero();
+                //控制FORWARD 變數
+                Debug.Log("backward");
+
             }
 
             moveDirection *= charSpeed;
         }
+        //重置FORWARD
+        else animateController.setToZero();
+
 
         moveDirection.y -= gravity * Time.deltaTime;
         charController.Move(moveDirection * Time.deltaTime);
