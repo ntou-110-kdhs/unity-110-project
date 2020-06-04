@@ -128,6 +128,8 @@ public class TestPlayerController : MonoBehaviour
     void Update()
     {        
         cam_forward = transform.forward;
+        
+
         //物件推移
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
         //Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
@@ -276,7 +278,7 @@ public class TestPlayerController : MonoBehaviour
                 //Debug.Log("Camera.LookAt.position : "+ Camera.LookAt.position);
                 //Debug.Log("Camera.transform.position : " + Camera.transform.position);
                 //Debug.Log("camFor : " + camFor);
-                camFor.y = newForward.y;
+                camFor.y = 0;
                 transform.forward = camFor;
                 //Debug.Log("camFor : "+ camFor);
                 //targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
@@ -686,7 +688,7 @@ public class TestPlayerController : MonoBehaviour
             {
                 isWall = true;
                 climbForward = true;
-                //alignToSurface(rayForward);
+                alignToSurface(rayForward);
             }
         }
         // 偵側牆壁 後方
@@ -722,13 +724,13 @@ public class TestPlayerController : MonoBehaviour
         
         Ray ray = new Ray(transform.position + transform.up, -transform.up);
         Debug.DrawRay(ray.origin, ray.direction, Color.red);
-
-        /*if (!isWall)
+        //alignToSurface(ray);
+        if (!climbForward)
         {
             alignToSurface(ray);
-        }*/
-        
-        
+        }
+
+
 
 
 
@@ -766,12 +768,14 @@ public class TestPlayerController : MonoBehaviour
                 if (newForward.y > 0)
                 {
                     Quaternion q = transform.rotation;
-                    testShowShadowPosCube.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
+                    //testShowShadowPosCube.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
+                    transform.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
                 }
                 else
                 {
                     Quaternion q = transform.rotation;
-                    testShowShadowPosCube.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
+                    //testShowShadowPosCube.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
+                    transform.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
                 }
                 //Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
             }
@@ -780,7 +784,7 @@ public class TestPlayerController : MonoBehaviour
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
 
             // 爬牆中
-            if (isWall)
+            /*if (isWall)
             {
                 testShowShadowPosCube.localRotation = Quaternion.Euler(90.0f, testShowShadowPosCube.localRotation.y, testShowShadowPosCube.localRotation.z);
                 testShowShadowPosCube.localPosition = hit.point;
@@ -836,7 +840,7 @@ public class TestPlayerController : MonoBehaviour
             {
                 testShowShadowPosCube.localRotation = Quaternion.Euler(0.0f, testShowShadowPosCube.localRotation.y, testShowShadowPosCube.localRotation.z);
                 testShowShadowPosCube.position = transform.position;
-            }
+            }*/
 
             moveDirection *= charSpeed;
         }
@@ -851,10 +855,7 @@ public class TestPlayerController : MonoBehaviour
         }
         //退出影子條件
         if (/*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
-        {
-            Debug.Log(shadowOutCount);
-            Debug.Log(!isClimbing);
-            Debug.Log(!charController.isGrounded && !isWall);
+        {           
 
             shadowOutCount = 0;
             isShadowing = false;
@@ -939,8 +940,11 @@ public class TestPlayerController : MonoBehaviour
         if (Physics.Raycast(inputRay, out hit, 5.0f))
         {
             //Debug.Log(hit.transform.name);
+            Debug.DrawLine(transform.position, transform.position + hit.normal, Color.blue);
             Vector3 newRight = -Vector3.Cross(hit.normal, transform.forward);
+            Debug.DrawLine(transform.position, transform.position + newRight, Color.green);
             newForward = Vector3.Cross(hit.normal, newRight);
+            Debug.DrawLine(transform.position, transform.position + newForward, Color.black);
         }
         else
         {
