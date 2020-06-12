@@ -95,10 +95,13 @@ public class TestPlayerController : MonoBehaviour
 
     [SerializeField] private Vector3 newForward = Vector3.zero;
     [SerializeField] private Transform testShowShadowPosCube;
+
+    private Vector3 testr;
+    private Vector3 testg;
+    private Vector3 testb;
     // Start is called before the first frame update
     void Start()
-    {
-
+    {                
         //載入人物操控
         charController = GetComponent<CharacterController>();
 
@@ -124,8 +127,11 @@ public class TestPlayerController : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {        
-        
+    {
+
+        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testr, Color.red);
+        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testg, Color.green);
+        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testb, Color.blue);
 
         //物件推移
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
@@ -355,10 +361,17 @@ public class TestPlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
             freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
             freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
+
+
             charController.center = new Vector3(0.0f, 0.25f, 0.0f);
             charController.radius = 0.25f;
             charController.height = 0.0f;
+
+
             setShadowsGameObject();
+
+            isClimbing = false;
+
         }
         else
         {
@@ -372,11 +385,19 @@ public class TestPlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = 3.0f;
             freeLookCam.m_Orbits[2].m_Height = 0.8f;
             freeLookCam.m_Orbits[2].m_Radius = 1.3f;
+
+
             charController.center = new Vector3(0.0f, 1.08f, 0.0f);
             charController.radius = 0.5f;
             charController.height = 2.0f;
+
+
             gravity = 20;
             shadowOwner = null;
+
+            transform.rotation = Quaternion.Euler(0.0f, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+
+            isClimbing = false;
         }
         // 把所有mesh物件關掉/打開
         for (int i = 0; i < meshs.Count; i++)
@@ -397,10 +418,17 @@ public class TestPlayerController : MonoBehaviour
     //潛入影子動畫結束
     public void playerControllerJIS()
     {
-        isShadowing = true;
+        if (!isInShadow || !charController.isGrounded)
+        {
+            isShadowing = false;            
+        }
+        else
+        {
+            isShadowing = true;
+        }
         transformToShadow();
-        //想做啥
-        //transformToShadow();
+        gravity = 20;
+
     }
 
 
@@ -645,7 +673,7 @@ public class TestPlayerController : MonoBehaviour
     /// </summary>
     private void shadowMove()
     {
-        Vector3 hitPos;
+        newForward = Vector3.zero;
         if (isInShadow)
         {
             setShadowsGameObject();
@@ -662,10 +690,8 @@ public class TestPlayerController : MonoBehaviour
         mouseY = Input.GetAxis("Mouse Y");
 
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
-        Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
-        Ray rayLeft = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.right);
         Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
-        //Ray rayForwardOblique;
+        
 
         bool setPos = false;
 
@@ -676,51 +702,62 @@ public class TestPlayerController : MonoBehaviour
         // 避免滑行問題
         moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
         // 偵側牆壁 前方
-        if (Physics.Raycast(rayForward, out hit, 1.0f))
+        if (Physics.Raycast(rayForward, out hit, 0.5f))
         {
-            hitPos = hit.point;
-            
-            if (hit.transform != transform )
+            if (hit.transform != transform && inputVer > 0)
             {
-                climbWalls(rayForward);
-                setPos = true;
+                if (hit.normal == Vector3.up && isClimbing)
+                {
+                    Quaternion q = transform.rotation;
+                    isClimbing = false;
+                    transform.rotation = Quaternion.Euler(0.0f, q.eulerAngles.y, -q.eulerAngles.z);
+                }
+                else
+                {
+                    //if((transform.forward - hit.normal).y == 0)
+                    //{
+                    Vector3 test = -hit.normal;
+                    test.y = 0;
+                    transform.forward = test;
+                    //}
+                    transform.position = hit.point;
+                    climbWalls(rayForward, true);
+                }
             }
         }
         // 偵側牆壁 後方
-        if (Physics.Raycast(rayBack, out hit, 1.0f))
+        if (Physics.Raycast(rayBack, out hit, 0.5f))
         {
-            if (hit.transform != transform)
+            if (hit.transform != transform && inputVer < 0)
             {
-                climbWalls(rayBack);
+                if (hit.normal == Vector3.up && isClimbing)
+                {
+                    Quaternion q = transform.rotation;
+                    isClimbing = false;
+                    transform.rotation = Quaternion.Euler(0.0f, q.eulerAngles.y, q.eulerAngles.z);
+                }
+                else
+                {
+                    //if ((transform.forward - hit.normal).y == 0)
+                    //{
+                    Vector3 test = -hit.normal;
+                    test.y = 0;
+                    transform.forward = test;
+                    //}
+                    climbWalls(rayBack, false);
+                }
+                
                 //setPos = true;
             }
-        }
-        // 偵側牆壁 右方
-        if (Physics.Raycast(rayRight, out hit, 1.0f))
-        {
-            if (hit.transform != transform)
-            {
-                climbWalls(rayRight);
-                //setPos = true;
-            }
-        }
-        // 偵側牆壁 左方
-        if (Physics.Raycast(rayLeft, out hit, 1.0f))
-        {
-            if (hit.transform != transform)
-            {
-                climbWalls(rayLeft);
-                //setPos = true;
-            }
-        }
+        }       
 
-        if (charController.isGrounded)
+        /*if (charController.isGrounded)
         {
             isClimbing = false;
-        }
+        }*/
 
         Ray ray = new Ray(transform.position + transform.up, -transform.up);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
+        //Debug.DrawRay(ray.origin, ray.direction, Color.red);
         // 跑出影子外的計時        
         if (!isInShadow)
         {            
@@ -736,7 +773,7 @@ public class TestPlayerController : MonoBehaviour
             
             //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
             if (((mouseX != 0 || mouseY != 0) && inputHor != 0) || inputVer != 0)
-            {
+            {                
 
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
                 camFor.y = 0;
@@ -759,7 +796,7 @@ public class TestPlayerController : MonoBehaviour
             if(!isInShadow && shadowMoveDir == Vector3.zero)
             {
                 transform.position = shadowPos + dir;
-            }            
+            }
             setPos = false;
             
         }
@@ -780,24 +817,31 @@ public class TestPlayerController : MonoBehaviour
     }
  
 
-    private void climbWalls(Ray ray)
+    private void climbWalls(Ray ray, bool isForward)
     {
         isClimbing = true;
         newForward = alignToSurface(ray);
-        float ang = Vector3.Angle(transform.forward, newForward);
-        transform.position += Vector3.up * Time.deltaTime * charSpeed;
-        if (newForward.y > 0)
+        testg = newForward;
+        Debug.Log(testg);
+        Debug.Log(newForward);
+        Debug.Log(transform.forward);
+        float ang = Vector3.Angle(-transform.forward, newForward);
+        Debug.Log(Vector3.Dot(-transform.forward, newForward));
+        Debug.Log(ang);
+        //Debug.Log(ang);
+        //transform.position += Vector3.up * Time.deltaTime * charSpeed;
+        if (isForward)
         {
             Quaternion q = transform.rotation;
-            //testShowShadowPosCube.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
             transform.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
         }
         else
         {
             Quaternion q = transform.rotation;
-            //testShowShadowPosCube.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
             transform.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
         }
+        
+        
     }
 
     private void dragMove()             //拖拉物體時的移動
@@ -870,16 +914,32 @@ public class TestPlayerController : MonoBehaviour
 
     private Vector3 alignToSurface(Ray inputRay)
     {
+        
         Vector3 playerCenter = transform.position + Vector3.up;
         RaycastHit hit;        
         if (Physics.Raycast(inputRay, out hit, 5.0f))
         {
-            //Debug.Log(hit.transform.name);
-            
-            Vector3 newRight = -Vector3.Cross(hit.normal, transform.forward);
-            Debug.DrawLine(transform.position, transform.position + hit.normal, Color.blue);            
-            Debug.DrawLine(transform.position, transform.position + newRight, Color.green);
-            Debug.DrawLine(transform.position, transform.position + newForward, Color.black);
+            Vector3 newRight;
+            testb = hit.normal;
+            if (hit.normal.y == 0 || hit.normal.y == 1)
+            {                
+                if (hit.normal.y == 1)
+                {                   
+                    newRight = transform.right;
+                }
+                else
+                {
+                    newRight = -transform.right;
+                }    
+            }
+            else
+            {
+                newRight = -Vector3.Cross(hit.normal, transform.forward);
+                testr = newRight;
+            }
+            /**/
+
+
             return Vector3.Cross(hit.normal, newRight);
             
         }
