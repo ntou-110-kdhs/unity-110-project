@@ -31,6 +31,7 @@ public class M_TestPlayerController : MonoBehaviour
     /**********潛入影子*********/
     //你人是否"進入"影子內
     [SerializeField] private bool isShadowing = false;
+    public bool getIsShadowing { get { return isShadowing; } }
     //人物身上的mesh物件陣列
     private List<GameObject> meshs = new List<GameObject>();
     //水圈圈粒子物件
@@ -53,7 +54,7 @@ public class M_TestPlayerController : MonoBehaviour
     private Vector3 shadowPos = Vector3.zero;
     private Vector3 shadowMoveDir = Vector3.zero;
     /**********影子邊界*********/
-
+    private bool isWall = false;
     /**********潛行移動*********/
 
 
@@ -114,7 +115,6 @@ public class M_TestPlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         //物件推移
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
         //Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
@@ -256,6 +256,7 @@ public class M_TestPlayerController : MonoBehaviour
             {
                 //以freeLookCam pos與freeLookCam本身pos的向量 更改角色forward方向
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+
                 //Debug.Log("Camera.LookAt.position : "+ Camera.LookAt.position);
                 //Debug.Log("Camera.transform.position : " + Camera.transform.position);
                 //Debug.Log("camFor : " + camFor);
@@ -337,6 +338,9 @@ public class M_TestPlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
             freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
             freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
+            charController.center = new Vector3(0.0f, 0.25f, 0.0f);
+            charController.radius = 0.25f;
+            charController.height = 0.0f;
             setShadowsGameObject();
         }
         else
@@ -351,6 +355,10 @@ public class M_TestPlayerController : MonoBehaviour
             freeLookCam.m_Orbits[1].m_Radius = 3.0f;
             freeLookCam.m_Orbits[2].m_Height = 0.8f;
             freeLookCam.m_Orbits[2].m_Radius = 1.3f;
+            charController.center = new Vector3(0.0f, 1.08f, 0.0f);
+            charController.radius = 0.5f;
+            charController.height = 2.0f;
+            gravity = 20;
             shadowOwner = null;
         }
         // 把所有mesh物件關掉/打開
@@ -612,6 +620,7 @@ public class M_TestPlayerController : MonoBehaviour
     /// </summary>
     private void shadowMove()
     {
+        //Vector3 hitPos;
         if (isInShadow)
         {
             setShadowsGameObject();
@@ -632,8 +641,8 @@ public class M_TestPlayerController : MonoBehaviour
         Ray rayLeft = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.right);
         Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
         RaycastHit hit;
-        bool isWall = false;
-
+        isWall = false;
+        isClimbing = false;
         bool climbLeft = false;
         bool climbRight = false;
         bool climbForward = false;
@@ -643,14 +652,15 @@ public class M_TestPlayerController : MonoBehaviour
         gravity = 20;
         // 避免滑行問題
         moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
-
         // 偵側牆壁 前方
         if (Physics.Raycast(rayForward, out hit, 1.0f))
         {
+            //hitPos = hit.point;
             if (hit.transform != transform)
             {
                 isWall = true;
                 climbForward = true;
+                //alignToSurface(rayForward);
             }
         }
         // 偵側牆壁 後方
@@ -660,6 +670,7 @@ public class M_TestPlayerController : MonoBehaviour
             {
                 isWall = true;
                 climbBack = true;
+                //alignToSurface(rayBack);
             }
         }
         // 偵側牆壁 右方
@@ -669,6 +680,7 @@ public class M_TestPlayerController : MonoBehaviour
             {
                 isWall = true;
                 climbRight = true;
+                //alignToSurface(rayRight);
             }
         }
         // 偵側牆壁 左方
@@ -678,8 +690,22 @@ public class M_TestPlayerController : MonoBehaviour
             {
                 isWall = true;
                 climbLeft = true;
+                //alignToSurface(rayLeft);
             }
         }
+
+        Ray ray = new Ray(transform.position + transform.up, -transform.up);
+        Debug.DrawRay(ray.origin, ray.direction, Color.red);
+
+        /*if (!isWall)
+        {
+            alignToSurface(ray);
+        }*/
+
+
+
+
+
         // 避免斜坡之後人整個飄在天上
         if ((isClimbing && !isWall) || !isInShadow)
         {
@@ -696,15 +722,32 @@ public class M_TestPlayerController : MonoBehaviour
         {
             shadowOutCount = 0;
         }
+
+
+
+
         // 移動
         if (inputHor != 0 || inputVer != 0)
         {
+
             //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
             if (((mouseX != 0 || mouseY != 0) && inputHor != 0) || inputVer != 0)
             {
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
-                camFor.y = 0.0f;
-                transform.forward = camFor;//Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+                camFor.y = 0;
+                transform.forward = camFor;
+                /*float ang = Vector3.Angle(transform.forward, newForward);
+                if (newForward.y > 0)
+                {
+                    Quaternion q = transform.rotation;
+                    testShowShadowPosCube.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
+                }
+                else
+                {
+                    Quaternion q = transform.rotation;
+                    testShowShadowPosCube.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
+                }*/
+                //Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
             }
 
             // 移動方向
@@ -713,7 +756,9 @@ public class M_TestPlayerController : MonoBehaviour
             // 爬牆中
             if (isWall)
             {
-                gravity = 0;
+                //testShowShadowPosCube.localRotation = Quaternion.Euler(90.0f, testShowShadowPosCube.localRotation.y, testShowShadowPosCube.localRotation.z);
+                //testShowShadowPosCube.localPosition = hit.point;
+                //gravity = 0;
                 // 爬牆中三個方向的位移量
                 float dirZ = inputVer;
                 float dirX = inputHor;
@@ -759,9 +804,14 @@ public class M_TestPlayerController : MonoBehaviour
 
                 }
                 // 新的移動向量
-                moveDirection = transform.TransformDirection(new Vector3(dirX, dirY, dirZ)/*.normalized*/);
-
+                moveDirection = transform.TransformDirection(new Vector3(dirX, dirY, dirZ));
             }
+            /*else
+            {
+                testShowShadowPosCube.localRotation = Quaternion.Euler(0.0f, testShowShadowPosCube.localRotation.y, testShowShadowPosCube.localRotation.z);
+                testShowShadowPosCube.position = transform.position;
+            }*/
+
             moveDirection *= charSpeed;
         }
         moveDirection.y -= gravity * Time.deltaTime;
@@ -774,7 +824,7 @@ public class M_TestPlayerController : MonoBehaviour
             charController.Move(moveDirection * Time.deltaTime);
         }
         //退出影子條件
-        if (/*!isInShadow || */shadowOutCount >= 20 || (!isClimbing && (!charController.isGrounded && !isWall)) || Input.GetKeyDown(KeyCode.E))
+        if (/*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
         {
             shadowOutCount = 0;
             isShadowing = false;
@@ -827,7 +877,7 @@ public class M_TestPlayerController : MonoBehaviour
             {
                 /*************配合動畫************/
                 //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
-                if((inputVer * -1>0.1 || inputVer * -1 < -0.1 )&& isFirstIn)
+                if ((inputVer * -1 > 0.1 || inputVer * -1 < -0.1) && isFirstIn)
                 {
                     pushTime = Time.time;
                     isFirstIn = false;
@@ -886,10 +936,10 @@ public class M_TestPlayerController : MonoBehaviour
 
 
 
-                    
+
                     //控制FORWARD 變數
-                    if (inputHor  > 0.1) animateController.addForward();
-                    else if (inputHor  < -0.1) animateController.minusForward();
+                    if (inputHor > 0.1) animateController.addForward();
+                    else if (inputHor < -0.1) animateController.minusForward();
                     else animateController.setToZero();
                     //控制FORWARD 變數
                     //Debug.Log("right");
@@ -918,17 +968,17 @@ public class M_TestPlayerController : MonoBehaviour
                     /*************配合動畫************/
 
 
-                    
-                    
+
+
                     //控制FORWARD 變數
                     if (inputHor * -1 > 0.1) animateController.addForward();
                     else if (inputHor * -1 < -0.1) animateController.minusForward();
-                    
+
                     else animateController.setToZero();
                     //控制FORWARD 變數
                     Debug.Log("left");
-                    
-                    
+
+
                 }
             }
             else                            //在後方
@@ -955,15 +1005,15 @@ public class M_TestPlayerController : MonoBehaviour
                 /*************配合動畫************/
 
 
-                
-                
+
+
                 //控制FORWARD 變數
                 if (inputVer > 0.1) animateController.addForward();
                 else if (inputVer < -0.1) animateController.minusForward();
                 else animateController.setToZero();
                 //控制FORWARD 變數
                 Debug.Log("backward");
-                
+
             }
 
             moveDirection *= charSpeed;

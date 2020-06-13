@@ -224,7 +224,7 @@ public class PlayerController : MonoBehaviour
         {
             //推移物品移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
-            animateController.pushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
+            pushingObjectAnimation();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             dragMove();
         }
         else
@@ -432,6 +432,12 @@ public class PlayerController : MonoBehaviour
         //TODO
     }
     //做出射繩動作並綁好繩子(一剛開始要在能綁繩的位置才能觸發) 
+
+    public void pushingObjectAnimation()
+    {
+        animateController.pushingObject();
+    }
+
 
     /// <summary>
     /// 偵測人物在哪個影子內
