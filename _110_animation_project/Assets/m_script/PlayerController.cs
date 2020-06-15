@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
     /**********繩索射出*********/
     public GameObject crossbowInHand;
-    public GameObject shootingTarget;
+    public GameObject shootingTarget;           //射及的物件  未來會改
     public GameObject crossbowAside;
     public Transform tiedObjectInRange = null;
     Rope_DrawLine ropeDrawLine = null;

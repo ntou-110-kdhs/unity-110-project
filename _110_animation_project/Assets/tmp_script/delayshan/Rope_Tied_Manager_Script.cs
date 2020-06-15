@@ -16,7 +16,7 @@ public class Rope_Tied_Manager_Script : MonoBehaviour
 {
     public Transform player;
     private GameObject[] playerarray;
-    private M_TestPlayerController playerController;
+    private PlayerController playerController;
     private GameObject[] allRTObjectArray;
     private bool isAbleToShoot = false;
     private int inRangeTarget=0;
@@ -29,7 +29,7 @@ public class Rope_Tied_Manager_Script : MonoBehaviour
         if (playerarray != null)
         {
             player = playerarray[0].transform;
-            playerController = player.GetComponent<M_TestPlayerController>();
+            playerController = player.GetComponent<PlayerController>();
         }
     }
 
