@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 77c63787d0bc9f94ea739f3d341934de
+guid: ee28641906122c84ea70a2499d1d9242
 ModelImporter:
   serializedVersion: 26
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Shooting_Gun_Low
+    second: Tied_rope
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -35,11 +35,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Shooting_Gun_Low
+      name: Tied_rope
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0
-      lastFrame: 221
+      lastFrame: 78
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -59,8 +59,8 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.78813565
-        functionName: shootAnimationEnd
+      - time: 0.85169494
+        functionName: tiedRopeAnimationEnd
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

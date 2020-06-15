@@ -11,7 +11,9 @@ public class PlayerAnimateController : MonoBehaviour
     [SerializeField]
     private Transform RightHandTarget;
 
+    /***********推移動畫***********/
     bool isPushingObject = false;   //是否正在推動物體
+    /***********推移動畫***********/
 
     private void Start()
     {
@@ -74,6 +76,24 @@ public class PlayerAnimateController : MonoBehaviour
         animator.SetFloat("forward", forward);      //將前進 後退 歸0
     }
     /***********推移動畫***********/
+
+    /**********繩索射出*********/
+    public void playShootCrossbowAnimation(float angle,float y)
+    {
+        if (y >= 0)                         //若目標物在上方
+        {
+            //Debug.Log("angle=" + angle);
+            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 1, angle / 90f));
+        }
+        else                                //若目標物在下方
+        {
+            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 0, angle / 90f));
+        }
+        animator.Play("Shoot_Crossbow");
+    }
+    /**********繩索射出*********/
+
+
 
 
     public void attackStart()                           //攻擊動畫開始   能開始傷害NPC

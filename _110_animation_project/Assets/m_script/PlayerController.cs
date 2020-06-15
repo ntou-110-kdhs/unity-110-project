@@ -18,6 +18,15 @@ public class PlayerController : MonoBehaviour
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
 
+    /**********繩索射出*********/
+    public GameObject crossbowInHand;
+    public GameObject shootingTarget;
+    public GameObject crossbowAside;
+    public Transform tiedObjectInRange = null;
+    Rope_DrawLine ropeDrawLine = null;
+    private bool isAbleToShoot = false;     //角色是否可以進行射箭    ableToShoot() 進行調整
+    /**********繩索射出*********/
+
     /**********推移物件*********/
     [SerializeField]
     private bool isPushingObject = false;
@@ -106,6 +115,12 @@ public class PlayerController : MonoBehaviour
         findAllMeshsInScene();
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
+        /**********繩索射出*********/
+        //取得Rope_DrawLine
+        if (ropeDrawLine == null) ropeDrawLine = GameObject.Find("Crossbow_rope_start").GetComponent<Rope_DrawLine>();
+        if (crossbowInHand == null) crossbowInHand = GameObject.Find("Crossbow_in_hand");
+        if (crossbowAside == null) crossbowAside = GameObject.Find("Crossbow_on_side");
+        /**********繩索射出*********/
         //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
         if (freeLookCam == null)
         {
@@ -153,13 +168,21 @@ public class PlayerController : MonoBehaviour
         }
         /**********潛入影子*********/
 
+        /**********繩索射出*********/
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && isAbleToShoot && tiedObjectInRange != null)
+        {
+            crossBowShoot();
+        }
+
+        /**********繩索射出*********/
+
         /**********推移物品*********/
         if (Physics.Raycast(rayObject, out hit, 1.5f))
         {
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
-                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing)
+                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing && !isAbleToShoot)
                 {
                     //更改角色的面向  以及位置
                     //為此  必須先關閉角色控制器
@@ -424,20 +447,98 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// 十字弓射擊動作反映
-    /// </summary>
+    /**********繩索射出*********/
+    public void shootAnimationEnd()
+    {
+        crossbowInHand.GetComponent<MeshRenderer>().enabled = false;
+        crossbowInHand.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+
+        crossbowAside.GetComponent<MeshRenderer>().enabled = true;
+        crossbowAside.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+
+        ropeDrawLine.ropeInHand();
+
+        if (tiedObjectInRange == null) Debug.Log("nothing is in tied range");
+        else
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(tiedObjectInRange.transform.position - this.transform.position, Vector3.up);
+            targetRotation.x = 0;
+            targetRotation.z = 0;
+            transform.rotation = targetRotation;
+        }
+
+
+    }
+
+    //獲取角色射出的LINERENDERER的ARRAY  並傳遞至tiedObjectInRange(在範圍內的綁繩子之物件)
+    public void tiedRopeAnimationEnd()
+    {
+        tiedObjectInRange.GetComponent<Rope_Tied_Object>().getLineRendererPoints(ropeDrawLine.ropeTiedToObject());
+        charController.enabled = true;
+    }
+
+
+    //配合動畫  取消側邊十字弓的MESH  與啟用手中十字弓的MESH 
+    public void takingCrossBow()
+    {
+        //啟用手中十字弓的MESH   會再shootAnimationEnd中停用
+        crossbowInHand.GetComponent<MeshRenderer>().enabled = true;
+        crossbowInHand.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+
+        //停用側邊十字弓的MESH   
+        crossbowAside.GetComponent<MeshRenderer>().enabled = false;
+        crossbowAside.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+
+        ropeDrawLine.crossbowInHand();
+    }
+
+    //在綁繩的固體物件中的Rope_Tied_Manager_Script中調用   代表進入綁繩物體範圍  並且接收該物件
+    public void ableToShoot(Transform inRangeTarget)
+    {
+        tiedObjectInRange = inRangeTarget;
+        isAbleToShoot = true;
+    }
+
+    //在綁繩的固體物件中的Rope_Tied_Manager_Script中調用   代表離開綁繩物體範圍
+    public void unAbleToShoot()
+    {
+        tiedObjectInRange = null;
+        isAbleToShoot = false;
+    }
+
+    //讓動畫開始到一定程度再撥放繩子效果
+    public void crossbowShootSrart()
+    {
+        ropeDrawLine.crossbowShootRope();
+    }
+
+    //計算十字弓與目標的角度  並傳遞
     public void crossBowShoot()
     {
-        //TODO
-    }
-    //做出射繩動作並綁好繩子(一剛開始要在能綁繩的位置才能觸發) 
+        float angleBetweenTarget = 0;
+        float y = 0;
+        charController.enabled = false;
 
+        //to do  使玩家的RAYCAST瞄準目標
+        if (shootingTarget != null)
+        {
+            Vector3 tempRotation = new Vector3(shootingTarget.transform.position.x - ropeDrawLine.transform.position.x, 0, shootingTarget.transform.position.z - ropeDrawLine.transform.position.z);
+            this.transform.rotation = Quaternion.LookRotation(tempRotation, Vector3.up);
+            angleBetweenTarget = Vector3.Angle(ropeDrawLine.transform.position, shootingTarget.transform.position);
+            y = shootingTarget.transform.position.y - shootingTarget.transform.position.y;
+            //Debug.Log("y=" + y);
+        }
+        //shootingTarget (ropeDrawLine.transform.position);
+        animateController.playShootCrossbowAnimation(angleBetweenTarget, y);
+    }
+    /**********繩索射出*********/
+
+    /**********推移物品*********/
     public void pushingObjectAnimation()
     {
         animateController.pushingObject();
     }
-
+    /**********推移物品*********/
 
     /// <summary>
     /// 偵測人物在哪個影子內
