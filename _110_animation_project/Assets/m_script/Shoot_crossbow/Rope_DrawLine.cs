@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//將目標物件拉至此函式的destination即可
+//確保目標物件的TAG為Crossbow_Target
 //位置0 是主角腰部  1 是左手十字弓的中段    2是目標位置做運算而得
 //運算方法大概是計算自己與目標物的距離   之後再除以速率   則可得出大概會有幾個大點(NODE)
 //接著每1秒換至下一個大點  每0.1秒更新點的小間隔(大點之間有10格)
@@ -12,7 +12,6 @@ public class Rope_DrawLine : MonoBehaviour
 {
     public Transform destination;                             //目標位置
     public Transform crossBowOnSide=null;                   //主角側邊的十字弩
-    private Transform tiedObjectStart = null;               //綁繩子的物件
     private Vector3 nextBigNode;                            //下一個大節點
     private Vector3 nextSmallNode;                          //下一個小節點
     private Vector3 SmallNode;                              //記憶小節點  用於保存小節點在每個大節點開始時的位置
@@ -33,20 +32,15 @@ public class Rope_DrawLine : MonoBehaviour
     void Start()
     {
 
-        if (destination == null) Debug.Log("target not set");
-        else
-        {
-            distance = Vector3.Distance(this.transform.position, destination.position);
-            speed = 90;
-            lineNodes = distance / speed;
+        if (destination == null) Debug.Log("target not set please check target's tag is setted to Crossbow_Target");
+        if(speed==0) speed = 90;
+        lineRenderer = gameObject.GetComponent<LineRenderer>();
+        lineRenderer.positionCount = 2;
+        lineRenderer.startWidth = 0.05f;
+        nextSmallNode = this.transform.position;
 
-            lineRenderer = gameObject.GetComponent<LineRenderer>();
-            lineRenderer.positionCount = 2;
-            lineRenderer.startWidth = 0.05f;
-            nextSmallNode = this.transform.position;
-
-            if (crossBowOnSide == null) crossBowOnSide = GameObject.Find("Crossbow_on_side").transform;
-        }
+        if (crossBowOnSide == null) crossBowOnSide = GameObject.Find("Crossbow_on_side").transform;
+        
 
     }
 
@@ -56,9 +50,14 @@ public class Rope_DrawLine : MonoBehaviour
 
         if (isCalled)
         {
+
             if (destination == null) Debug.Log("target not set");
             else
             {
+                distance = Vector3.Distance(this.transform.position, destination.position);
+                lineNodes = distance / speed;
+
+
                 lineRenderer.SetPosition(0, crossBowOnSide.position);
                 if (Time.time - miliSecCounter >= 0.1)                              //使J與miliSecCounter  每0.1秒更動一次
                 {
@@ -100,7 +99,8 @@ public class Rope_DrawLine : MonoBehaviour
         }
         else
         {
-
+            i = 0;
+            j = 0;
             //重置綁繩位置
             lineRenderer.SetPosition(0, crossBowOnSide.position);
             lineRenderer.SetPosition(1, crossBowOnSide.position);
@@ -139,6 +139,10 @@ public class Rope_DrawLine : MonoBehaviour
         return positionsArray;
     }
 
-
+    //取得目標位置   會由玩家控制器指派
+    public void getDestination(GameObject targetObject)
+    {
+        destination = targetObject.transform;
+    }
 
 }

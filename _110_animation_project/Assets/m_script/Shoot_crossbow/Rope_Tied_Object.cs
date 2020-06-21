@@ -4,6 +4,7 @@ using UnityEngine;
 
 /*
  使用前  確保玩家的TAG為PLAYER  且此物件的tag為Rope_Tied_Object  且有將material附上物件的linerenderer
+ 並有正確的配置繩索的PREFAB
 
  將此函式放置在綁繩索的物體上  此函式將判斷玩家與此物體的距離 
  若小於rangeToShoot的距離  isPlayerInRange為TRUE
@@ -17,14 +18,15 @@ using UnityEngine;
 
 public class Rope_Tied_Object : MonoBehaviour
 {
-    public Transform Rope_tied_objcet;
+    public Transform Rope_tied_objcet;              //為物體的第一個子物件   綁繩子的點
     public Transform player;
-    public bool isPlayerInRange = false;
+    public bool isPlayerInRange = false;            //玩家是否在物體範圍內
     [SerializeField]
     private float rangeToShoot = 2.5f;
+    [SerializeField]
+    private GameObject ropePrefabe=null;
     private GameObject [] playerarray;
     private LineRenderer tiedObejectLineRenderer=null;
-    private Vector3[] tiedPoints=null;
     // Start is called before the first frame update
     void Start()
     {
@@ -45,6 +47,8 @@ public class Rope_Tied_Object : MonoBehaviour
             tiedObejectLineRenderer.SetPosition(0, Rope_tied_objcet.transform.position);
             tiedObejectLineRenderer.SetPosition(1, Rope_tied_objcet.transform.position);
         }
+        //確認是否有指派繩索物件
+        if (ropePrefabe == null) Debug.Log("rope prefab has not been assigned");
     }
 
     // Update is called once per frame
@@ -65,11 +69,21 @@ public class Rope_Tied_Object : MonoBehaviour
     //獲得玩家的LINERENDERER的所有結點  並且將第0個設為自己的位置  在玩家控制器的tiedRopeAnimationEnd取用
     public void getLineRendererPoints(Vector3[] array)
     {
+
         if (tiedObejectLineRenderer != null)
         {
             tiedObejectLineRenderer.SetPositions(array);
         }
         tiedObejectLineRenderer.SetPosition(0, Rope_tied_objcet.position);
+
+        //生成繩索物件
+        float dist = Vector3.Distance(Rope_tied_objcet.position, array[1]);
+        Vector3 newPosition= Vector3.Lerp(Rope_tied_objcet.position, array[1],0.5f);
+        Vector3 rotationnVector = new Vector3(array[1].x - Rope_tied_objcet.position.x, array[1].y - Rope_tied_objcet.position.y, array[1].z - Rope_tied_objcet.position.z);
+        Quaternion newRotation = Quaternion.LookRotation(rotationnVector);
+        GameObject ropeObject= Instantiate(ropePrefabe, newPosition, newRotation);
+        ropeObject.transform.localScale =new Vector3(ropeObject.transform.localScale.x, dist/2, ropeObject.transform.localScale.z);
+        if (ropeObject != null) ropeObject.transform.rotation = Quaternion.LookRotation(ropeObject.transform.up);
     }
 
 }

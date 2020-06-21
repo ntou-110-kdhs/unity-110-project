@@ -78,16 +78,27 @@ public class PlayerAnimateController : MonoBehaviour
     /***********推移動畫***********/
 
     /**********繩索射出*********/
-    public void playShootCrossbowAnimation(float angle,float y)
+    public void playShootCrossbowAnimation(float distanceBetweenTarget, float y)
     {
+        float numBaseOnDis = 0;     //根據與目標距離  調整大小   越近越小
+        if (distanceBetweenTarget <= 10) numBaseOnDis = 1;
+        else if (distanceBetweenTarget <= 20) numBaseOnDis = 2;
+        else if (distanceBetweenTarget <= 30) numBaseOnDis = 3;
+        else if (distanceBetweenTarget <= 40) numBaseOnDis = 5;
+        else numBaseOnDis = 10;
         if (y >= 0)                         //若目標物在上方
         {
             //Debug.Log("angle=" + angle);
-            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 1, angle / 90f));
+            float angle = y / numBaseOnDis;
+            if (angle > 1) angle = 1;
+            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 1, angle));
+            //Debug.Log(angle);
         }
         else                                //若目標物在下方
         {
-            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 0, angle / 90f));
+            float angle = y*-1 / numBaseOnDis;
+            if (angle > 1) angle = 1;
+            animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 0, angle));
         }
         animator.Play("Shoot_Crossbow");
     }

@@ -9,14 +9,24 @@ public class M_TestPlayerController : MonoBehaviour
     private PlayerAnimateController animateController;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
+    //main camera
+    [SerializeField]
+    private Camera mainCam = null;
 
     /**********繩索射出*********/
-    public GameObject crossbowInHand;           
-    public GameObject shootingTarget;       //射及的物件  未來會改
-    public GameObject crossbowAside;
-    public Transform tiedObjectInRange=null;
-    Rope_DrawLine ropeDrawLine=null;             
+    [SerializeField]
+    private GameObject crossbowInHand;       //角色手中的十字弓   也會用此物件位置  偵測與目標物之間是否有阻擋物
+    [SerializeField]
+    private GameObject crossbowAside;        //角色側面的十字弓
+
+    private GameObject shootingTarget;       //射擊的物件     由crossbowTargeting判定    找到後  將傳遞給ropeDrawLine.crossbowShootSrart
+    private GameObject tempShootTarget;      //儲存玩家瞄準的物件     避免在做動畫途中換動鏡頭導致無法成功射出       在tiedRopeAnimationEnd重置
+    private GameObject[] allShootingTargetArray;//所有十字弓射擊目標的物件
+    private Transform tiedObjectInRange = null;//是否有TAG 為Rope_Tied_Object的物件在角色周圍
+    private Rope_DrawLine ropeDrawLine = null;
+    private float lastTargetDistance = 0;   //紀錄之前可射擊物體距離  當前物體的距離需大於之前可射擊物體才可取代   目的是避免重疊物體  crossbowTargeting取用  在tiedRopeAnimationEnd歸0
     private bool isAbleToShoot = false;     //角色是否可以進行射箭    ableToShoot() 進行調整
+    private bool isShooting = false;        //角色是否正在射擊      避免同時射擊多個目標
     /**********繩索射出*********/
 
 
@@ -107,17 +117,28 @@ public class M_TestPlayerController : MonoBehaviour
         findAllMeshsInScene();
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
+
         /**********繩索射出*********/
         //取得Rope_DrawLine
         if (ropeDrawLine == null)ropeDrawLine = GameObject.Find("Crossbow_rope_start").GetComponent<Rope_DrawLine>();       
         if (crossbowInHand == null)crossbowInHand = GameObject.Find("Crossbow_in_hand");
         if (crossbowAside == null)crossbowAside = GameObject.Find("Crossbow_on_side");
+        //取得所有十字弓射擊目標的物件
+        if (allShootingTargetArray == null) {
+            allShootingTargetArray = GameObject.FindGameObjectsWithTag("Crossbow_Target");
+            if (allShootingTargetArray == null) Debug.Log("Crossbow does not have any available target");
+        }
         /**********繩索射出*********/
 
-        //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
+            //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
         if (freeLookCam == null)
         {
             freeLookCam = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
+        }
+        //取得主攝影機
+        if (mainCam == null)
+        {
+            mainCam = GameObject.Find("Main Camera").GetComponent<Camera>();
         }
         //取得ripple物件，潛入影子後的特效
         if (ripple == null)
@@ -135,6 +156,10 @@ public class M_TestPlayerController : MonoBehaviour
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
         //Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
         RaycastHit hit;
+
+        //繩索射出  設置RAYCAST   用於探測是否有物體在玩家與物體間
+        Ray rayBeforeShoot;
+        RaycastHit beforeShootHit;
 
         // 偵測影子
         shadowDetect();
@@ -162,11 +187,24 @@ public class M_TestPlayerController : MonoBehaviour
         /**********潛入影子*********/
 
         /**********繩索射出*********/
-        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && isAbleToShoot&& tiedObjectInRange!=null)
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false)
         {
-            crossBowShoot();
-        }
+            rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
+            Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);
+            //設置RAYCAST   用於探測是否有物體在玩家與物體間
 
+            if (Physics.Raycast(rayBeforeShoot, out beforeShootHit, Vector3.Distance(crossbowInHand.transform.position, shootingTarget.transform.position)))
+            {
+                Debug.Log(beforeShootHit.transform);
+                if (beforeShootHit.transform.tag == ("Crossbow_Target"))
+                {
+                    tempShootTarget = shootingTarget;           //在按下F時  直接紀錄目標物件
+                    crossBowShoot();
+                }
+            }
+
+        }
+        crossbowTargeting();
         /**********繩索射出*********/
 
 
@@ -464,10 +502,13 @@ public class M_TestPlayerController : MonoBehaviour
 
     }
 
-    //獲取角色射出的LINERENDERER的ARRAY  並傳遞至tiedObjectInRange(在範圍內的綁繩子之物件)
+    //獲取角色射出的LINERENDERER的ARRAY  並傳遞至tiedObjectInRange(在範圍內的綁繩子之物件)   且重置lastTargetDistance為0
     public void tiedRopeAnimationEnd()
-    {       
+    {
         tiedObjectInRange.GetComponent<Rope_Tied_Object>().getLineRendererPoints(ropeDrawLine.ropeTiedToObject());
+        lastTargetDistance = 0;
+        tempShootTarget = null;
+        isShooting = false;
         charController.enabled = true;
     }
 
@@ -501,29 +542,81 @@ public class M_TestPlayerController : MonoBehaviour
     }
 
     //讓動畫開始到一定程度再撥放繩子效果
-    public void crossbowShootSrart()            
+    public void crossbowShootSrart()
     {
+        ropeDrawLine.getDestination(tempShootTarget);
         ropeDrawLine.crossbowShootRope();
     }
 
     //計算十字弓與目標的角度  並傳遞
-    public void crossBowShoot()                 
+    public void crossBowShoot()
     {
-        float angleBetweenTarget=0;
+        isShooting = true;
+        float distanceBetweenTarget = 0;
         float y = 0;
         charController.enabled = false;
 
-        //to do  使玩家的RAYCAST瞄準目標
-        if (shootingTarget != null) 
+        if (tempShootTarget != null)
         {
-            Vector3 tempRotation = new Vector3(shootingTarget.transform.position.x- ropeDrawLine.transform.position.x,0, shootingTarget.transform.position.z - ropeDrawLine.transform.position.z);
-            this.transform.rotation = Quaternion.LookRotation(tempRotation,Vector3.up);
-            angleBetweenTarget = Vector3.Angle(ropeDrawLine.transform.position,shootingTarget.transform.position);
-            y = shootingTarget.transform.position.y - shootingTarget.transform.position.y;
-            //Debug.Log("y=" + y);
-        } 
-        //shootingTarget (ropeDrawLine.transform.position);
-        animateController.playShootCrossbowAnimation(angleBetweenTarget, y);
+            Vector3 tempRotation = new Vector3(tempShootTarget.transform.position.x - ropeDrawLine.transform.position.x, 0, tempShootTarget.transform.position.z - ropeDrawLine.transform.position.z);
+            this.transform.rotation = Quaternion.LookRotation(tempRotation, Vector3.up);
+            distanceBetweenTarget = Vector3.Distance(new Vector3(ropeDrawLine.transform.position.x, 0, ropeDrawLine.transform.position.z), new Vector3(tempShootTarget.transform.position.x, 0, tempShootTarget.transform.position.z));
+            y = tempShootTarget.transform.position.y - ropeDrawLine.transform.position.y;
+            //Debug.Log("ropeDrawLine=" + ropeDrawLine.transform.position.y);
+            //Debug.Log("tempShootTarget=" + tempShootTarget.transform.position.y);
+            //Debug.Log("angleBetweenTarget=" + angleBetweenTarget);
+        }
+        //tempShootTarget (ropeDrawLine.transform.position);
+        animateController.playShootCrossbowAnimation(distanceBetweenTarget, y);
+    }
+
+
+    //使玩家藉由MainCamera瞄準欲射擊的物件 取得所有可被射擊的物件後進行判斷  會隨著距離改變所需要的精度
+    public void crossbowTargeting()
+    {
+        bool foundTarget = false;           //判斷在範圍內是否有找到物件    用於重製shootingTarget為NULL
+        lastTargetDistance = 0;
+        if (allShootingTargetArray != null)
+        {
+            for (int i = 0; i < allShootingTargetArray.Length; i++)
+            {
+                Vector3 screenPos = mainCam.WorldToScreenPoint(allShootingTargetArray[i].transform.position);
+                float targetDis = Vector3.Distance(this.transform.position, allShootingTargetArray[i].transform.position);
+                if (targetDis <= 25)
+                {
+                    if (screenPos.x >= 400 && screenPos.x <= 700 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
+                    {
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
+                    }
+                }
+                else if (targetDis <= 50)
+                {
+                    if (screenPos.x >= 450 && screenPos.x <= 650 && screenPos.y >= 150 && screenPos.y <= 300 && targetDis >= lastTargetDistance)
+                    {
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
+                    }
+                }
+                else if (targetDis <= 100)
+                {
+                    if (screenPos.x >= 500 && screenPos.x <= 600 && screenPos.y >= 200 && screenPos.y <= 250 && targetDis >= lastTargetDistance)
+                    {
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
+                    }
+                }
+                //Debug.Log("target is " + targetDis);
+                //Debug.Log("target is " + screenPos.x + " pixels from the left");
+                //Debug.Log("target is " + screenPos.y + " pixels from the bottom");
+            }
+        }
+        else shootingTarget = null;
+
+        if (foundTarget == false) shootingTarget = null;                //若範圍內沒找到物件  重置shootingTarget
     }
     /**********繩索射出*********/
 

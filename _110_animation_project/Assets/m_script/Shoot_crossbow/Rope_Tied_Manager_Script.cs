@@ -17,9 +17,9 @@ public class Rope_Tied_Manager_Script : MonoBehaviour
     public Transform player;
     private GameObject[] playerarray;
     private PlayerController playerController;
-    private GameObject[] allRTObjectArray;
-    private bool isAbleToShoot = false;
-    private int inRangeTarget=0;
+    private GameObject[] allRTObjectArray;          //所有的綁繩子物體
+    private bool isAbleToShoot = false;             //判斷玩家是否至少站在一個綁繩子物體範圍內
+    private int inRangeTarget=0;                    //記住第幾個物件在範圍內
     // Start is called before the first frame update
     void Start()
     {

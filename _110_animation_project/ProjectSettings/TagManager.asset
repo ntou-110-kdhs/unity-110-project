@@ -8,6 +8,7 @@ TagManager:
   - Enimy
   - Movable
   - Rope_Tied_Object
+  - Crossbow_Target
   layers:
   - Default
   - TransparentFX
