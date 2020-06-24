@@ -420,7 +420,7 @@ public class FindRoadController : MonoBehaviour
     /// </summary>
     private bool alertAngleWithRaycast()
     {
-        bool ret = false,isShadowing = target.GetComponent<PlayerController>().getIsShadowing;
+        bool ret = false,isShadowing = target.GetComponent<ShadowModule>().IsShadowing;
         Vector3 targetTransTmp = target.transform.position,transTmp = transform.position;
         targetTransTmp.y += 1;
         transTmp.y += 1;
