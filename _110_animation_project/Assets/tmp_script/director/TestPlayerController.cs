@@ -12,56 +12,38 @@ using UnityEngine;
 //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
 public class TestPlayerController : MonoBehaviour
-{    
+{
     //人物的animateController
     private PlayerAnimateController animateController;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
+    //main camera
+    [SerializeField]
+    private Camera mainCam = null;
+
+    /**********繩索射出*********/
+    [SerializeField]
+    private GameObject crossbowInHand;       //角色手中的十字弓   也會用此物件位置  偵測與目標物之間是否有阻擋物
+    [SerializeField]
+    private GameObject crossbowAside;        //角色側面的十字弓
+
+    private GameObject shootingTarget;       //射擊的物件     由crossbowTargeting判定    找到後  將傳遞給ropeDrawLine.crossbowShootSrart
+    private GameObject tempShootTarget;      //儲存玩家瞄準的物件     避免在做動畫途中換動鏡頭導致無法成功射出       在tiedRopeAnimationEnd重置
+    private GameObject[] allShootingTargetArray;//所有十字弓射擊目標的物件
+    private Transform tiedObjectInRange = null;//是否有TAG 為Rope_Tied_Object的物件在角色周圍
+    private Rope_DrawLine ropeDrawLine = null;
+    private float lastTargetDistance = 0;   //紀錄之前可射擊物體距離  當前物體的距離需大於之前可射擊物體才可取代   目的是避免重疊物體  crossbowTargeting取用  在tiedRopeAnimationEnd歸0
+    private bool isAbleToShoot = false;     //角色是否可以進行射箭    ableToShoot() 進行調整
+    private bool isShooting = false;        //角色是否正在射擊      避免同時射擊多個目標
+    /**********繩索射出*********/
 
     /**********推移物件*********/
     [SerializeField]
     private bool isPushingObject = false;
     GameObject pushedObject = null;  //紀錄推動中的物件  若因角色因素取消連接  會使用到
-    /**********推移物件*********/
-
-    /**********影子偵測*********/
-    //你人是否站在影子上
-    [SerializeField] private bool isInShadow = false;
-    //光源的陣列
-    private List<GameObject> lights = new List<GameObject>();
-    //一個光源對一個物件所製造出的影子  陣列
-    private Dictionary<GameObject, GameObject> lightsWithShadows = new Dictionary<GameObject, GameObject>();
-    /**********影子偵測*********/
-
-
-    /**********潛入影子*********/
-    //你人是否"進入"影子內
-    [SerializeField] private bool isShadowing = false;
-    //人物身上的mesh物件陣列
-    private List<GameObject> meshs = new List<GameObject>();
-    //水圈圈粒子物件
-    [SerializeField] private GameObject ripple;
-    //按著E 進入影子的延遲
-    private float delayCount = 0;
-    /**********潛入影子*********/
-
-
-    /**********潛行移動*********/
-    // 是否爬牆
-    [SerializeField] private bool isClimbing = false;
-    // 飛行延遲
-    private int shadowOutCount = 0;
-    [SerializeField] private bool isWall = false;
-    /**********影子邊界*********/
-    private Vector3 dir = Vector3.zero;
-    private Transform shadowOwner;
-    private Transform shadowOwnerLight;
-    private Vector3 shadowPos = Vector3.zero;
-    private Vector3 shadowMoveDir = Vector3.zero;
-    
-    /**********影子邊界*********/
-
-    /**********潛行移動*********/
+    float pushTime = -10;           //按下前進的時間  大於一定時間才會開始移動
+    bool isFirstIn = true;       //確認是否為第一次進入推動狀態  會在FORWARD為0時 重置
+                                 /**********推移物件*********/
 
 
     /**********物理性質*********/
@@ -92,54 +74,61 @@ public class TestPlayerController : MonoBehaviour
     /********鍵鼠操控變數*******/
 
 
+    private ShadowModule shadowModule;
 
-    [SerializeField] private Vector3 newForward = Vector3.zero;
-    [SerializeField] private Transform testShowShadowPosCube;
-
-    private Vector3 testr;
-    private Vector3 testg;
-    private Vector3 testb;
     // Start is called before the first frame update
     void Start()
-    {                
+    {
+
         //載入人物操控
         charController = GetComponent<CharacterController>();
 
-        //載入所有光源
-        findAllLightsInScene();
-        //載入人物身上所有mesh物件
-        findAllMeshsInScene();
+        //影子模組初始化
+        shadowModule = GetComponent<ShadowModule>();
+        shadowModule.init();
+
+
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
+        /**********繩索射出*********/
+        //取得Rope_DrawLine
+        if (ropeDrawLine == null) ropeDrawLine = GameObject.Find("Crossbow_rope_start").GetComponent<Rope_DrawLine>();
+        if (crossbowInHand == null) crossbowInHand = GameObject.Find("Crossbow_in_hand");
+        if (crossbowAside == null) crossbowAside = GameObject.Find("Crossbow_on_side");
+        //取得所有十字弓射擊目標的物件
+        if (allShootingTargetArray == null)
+        {
+            allShootingTargetArray = GameObject.FindGameObjectsWithTag("Crossbow_Target");
+            if (allShootingTargetArray == null) Debug.Log("Crossbow does not have any available target");
+        }
+        /**********繩索射出*********/
         //取得freelook攝影機，要用名字找太暴力，所以用掛的比較好
         if (freeLookCam == null)
         {
             freeLookCam = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
         }
-        //取得ripple物件，潛入影子後的特效
-        if (ripple == null)
+        //取得主攝影機
+        if (mainCam == null)
         {
-            ripple = transform.Find("Ripple").gameObject;
+            mainCam = GameObject.Find("Main Camera").GetComponent<Camera>();
         }
 
 
     }
-
     // Update is called once per frame
     void Update()
     {
-
-        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testr, Color.red);
-        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testg, Color.green);
-        Debug.DrawLine(transform.position + Vector3.up, transform.position + Vector3.up + testb, Color.blue);
-
         //物件推移
         Ray rayObject = new Ray(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward); //用於判斷前方是否有可推動物體
         //Debug.DrawRay(transform.position + new Vector3(0.0f, 1.25f, 0.0f), transform.forward*1.5f,Color.green);
         RaycastHit hit;
 
+        //繩索射出  設置RAYCAST   用於探測是否有物體在玩家與物體間
+        Ray rayBeforeShoot;
+        RaycastHit beforeShootHit;
+
         // 偵測影子
-        shadowDetect();
+        shadowModule.shadowDetect();
         // 印出你踩在哪個影子上
         //printWhatShadowsIn();
 
@@ -147,21 +136,43 @@ public class TestPlayerController : MonoBehaviour
         /**********潛入影子*********/
         if (charController.isGrounded)
         {
-            if (Input.GetKey(KeyCode.E) && !isShadowing && isInShadow && !isPushingObject)
+            if (Input.GetKey(KeyCode.E) && !shadowModule.IsShadowing && shadowModule.IsInShadow && !isPushingObject)
             {
-                if (Time.time - delayCount > 0.20f)
+                if (Time.time - shadowModule.DelayCount > 0.20f)
                 {
                     animateController.jumpIntoShadow();
                 }
             }
-            else if (Input.GetKeyDown(KeyCode.E) && isInShadow && charController.isGrounded && !isPushingObject)
+            else if (Input.GetKeyDown(KeyCode.E) && shadowModule.IsInShadow && charController.isGrounded && !isPushingObject)
             {
-                isShadowing = !isShadowing;
-                transformToShadow();
-                delayCount = Time.time;
+                shadowModule.IsShadowing = !shadowModule.IsShadowing;
+                shadowModule.transformToShadow();
+                shadowModule.DelayCount = Time.time;
             }
         }
         /**********潛入影子*********/
+
+
+        /**********繩索射出*********/
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false)
+        {
+            rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
+            Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);
+            //設置RAYCAST   用於探測是否有物體在玩家與物體間
+
+            if (Physics.Raycast(rayBeforeShoot, out beforeShootHit, Vector3.Distance(crossbowInHand.transform.position, shootingTarget.transform.position)))
+            {
+                Debug.Log(beforeShootHit.transform);
+                if (beforeShootHit.transform.tag == ("Crossbow_Target"))
+                {
+                    tempShootTarget = shootingTarget;           //在按下F時  直接紀錄目標物件
+                    crossBowShoot();
+                }
+            }
+
+        }
+        crossbowTargeting();
+        /**********繩索射出*********/
 
         /**********推移物品*********/
         if (Physics.Raycast(rayObject, out hit, 1.5f))
@@ -169,7 +180,7 @@ public class TestPlayerController : MonoBehaviour
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
-                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !isShadowing)
+                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !shadowModule.IsShadowing && !isAbleToShoot)
                 {
                     //更改角色的面向  以及位置
                     //為此  必須先關閉角色控制器
@@ -195,7 +206,7 @@ public class TestPlayerController : MonoBehaviour
                     isPushingObject = true;
 
                 }
-                else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !isShadowing)   //再次點擊 取消
+                else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !shadowModule.IsShadowing)   //再次點擊 取消
                 {
                     if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
                     pushedObject = null;
@@ -223,19 +234,18 @@ public class TestPlayerController : MonoBehaviour
         }
         /**********推移物品*********/
 
-        if (isShadowing)
+        if (shadowModule.IsShadowing)
         {
             //潛行後移動的模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
             animateController.notPushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
-            shadowMove();
-            testShowShadowPosCube.position = transform.position;
+            shadowModule.shadowMove();
         }
         else if (isPushingObject)
         {
             //推移物品移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
-            animateController.pushingObject();                                              //呼叫此函式  更改ANIMATION中的BOOL值
+            pushingObjectAnimation();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             dragMove();
         }
         else
@@ -260,38 +270,27 @@ public class TestPlayerController : MonoBehaviour
         mouseX = Input.GetAxis("Mouse X");
         //滑鼠垂直(Y軸)移動
         mouseY = Input.GetAxis("Mouse Y");
-
-        if (!isInShadow && isShadowing)
-        {
-            isShadowing = false;
-            transformToShadow();
-        }
-
         //角色在落地時啟動
         if (charController.isGrounded)
         {
-            
-            
-
             // 滑鼠 有動 與 方向鍵 有按著的時候才會啟動
             if ((mouseX != 0 || mouseY != 0) && (inputHor != 0) || inputVer != 0)
             {
                 //以freeLookCam pos與freeLookCam本身pos的向量 更改角色forward方向
                 Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+
                 //Debug.Log("Camera.LookAt.position : "+ Camera.LookAt.position);
                 //Debug.Log("Camera.transform.position : " + Camera.transform.position);
                 //Debug.Log("camFor : " + camFor);
-                camFor.y = 0;
-                transform.forward = camFor;
+                camFor.y = 0.0f;
                 //Debug.Log("camFor : "+ camFor);
-                //targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
-                //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f/*每一frame轉向 5.0 度*/);
+                targetRotation = Quaternion.LookRotation(camFor, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f/*每一frame轉向 5.0 度*/);
             }
             // We are grounded, so recalculate
             // move direction directly from axes       
             //前進方向local coord.轉world coord.
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
-
             //以charSpeed 的速率前進
             moveDirection *= charSpeed;
 
@@ -340,95 +339,13 @@ public class TestPlayerController : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// 潛入影子
-    /// </summary>
-    public void transformToShadow()
-    {
-        const float _newRigsHeight = 1.5f;
-        const float _newRigsRadius = 6.0f;
-
-        // 調整攝影機位置
-        if (isShadowing)
-        {
-            animateController.jumpIntoShadow();
-            ripple.GetComponent<ParticleSystem>().Play();
-             freeLookCam.LookAt = transform;
-            // freeLookCam.m_Orbits[0] = top
-            // freeLookCam.m_Orbits[1] = mid
-            // freeLookCam.m_Orbits[2] = bot
-            freeLookCam.m_Orbits[1].m_Height = _newRigsHeight;
-            freeLookCam.m_Orbits[1].m_Radius = _newRigsRadius;
-            freeLookCam.m_Orbits[2].m_Height = _newRigsHeight;
-            freeLookCam.m_Orbits[2].m_Radius = _newRigsRadius;
-
-
-            charController.center = new Vector3(0.0f, 0.25f, 0.0f);
-            charController.radius = 0.25f;
-            charController.height = 0.0f;
-
-
-            setShadowsGameObject();
-
-            isClimbing = false;
-
-        }
-        else
-        {
-            animateController.jumpOutOfShadow();
-            ripple.GetComponent<ParticleSystem>().Stop();
-            freeLookCam.LookAt = transform.GetChild(2);
-            // freeLookCam.m_Orbits[0] = top
-            // freeLookCam.m_Orbits[1] = mid
-            // freeLookCam.m_Orbits[2] = bot
-            freeLookCam.m_Orbits[1].m_Height = 2.5f;
-            freeLookCam.m_Orbits[1].m_Radius = 3.0f;
-            freeLookCam.m_Orbits[2].m_Height = 0.8f;
-            freeLookCam.m_Orbits[2].m_Radius = 1.3f;
-
-
-            charController.center = new Vector3(0.0f, 1.08f, 0.0f);
-            charController.radius = 0.5f;
-            charController.height = 2.0f;
-
-
-            gravity = 20;
-            shadowOwner = null;
-
-            transform.rotation = Quaternion.Euler(0.0f, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-
-            isClimbing = false;
-        }
-        // 把所有mesh物件關掉/打開
-        for (int i = 0; i < meshs.Count; i++)
-        {
-            if (meshs[i].GetComponent<MeshRenderer>())
-            {
-                meshs[i].GetComponent<MeshRenderer>().enabled = !isShadowing;
-            }
-            else
-            {
-                meshs[i].GetComponent<SkinnedMeshRenderer>().enabled = !isShadowing;
-            }
-        }
-    }
-
-
-
     //潛入影子動畫結束
     public void playerControllerJIS()
     {
-        if (!isInShadow || !charController.isGrounded)
-        {
-            isShadowing = false;            
-        }
-        else
-        {
-            isShadowing = true;
-        }
-        transformToShadow();
-        gravity = 20;
-
+        shadowModule.IsShadowing = true;
+        shadowModule.transformToShadow();
+        //想做啥
+        //transformToShadow();
     }
 
 
@@ -461,389 +378,153 @@ public class TestPlayerController : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// 十字弓射擊動作反映
-    /// </summary>
+    /**********繩索射出*********/
+    public void shootAnimationEnd()
+    {
+        crossbowInHand.GetComponent<MeshRenderer>().enabled = false;
+        crossbowInHand.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+
+        crossbowAside.GetComponent<MeshRenderer>().enabled = true;
+        crossbowAside.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+
+        ropeDrawLine.ropeInHand();
+
+        if (tiedObjectInRange == null) Debug.Log("nothing is in tied range");
+        else
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(tiedObjectInRange.transform.position - this.transform.position, Vector3.up);
+            targetRotation.x = 0;
+            targetRotation.z = 0;
+            transform.rotation = targetRotation;
+        }
+
+
+    }
+
+    //獲取角色射出的LINERENDERER的ARRAY  並傳遞至tiedObjectInRange(在範圍內的綁繩子之物件)   且重置lastTargetDistance為0
+    public void tiedRopeAnimationEnd()
+    {
+        tiedObjectInRange.GetComponent<Rope_Tied_Object>().getLineRendererPoints(ropeDrawLine.ropeTiedToObject());
+        lastTargetDistance = 0;
+        tempShootTarget = null;
+        isShooting = false;
+        charController.enabled = true;
+    }
+
+
+    //配合動畫  取消側邊十字弓的MESH  與啟用手中十字弓的MESH 
+    public void takingCrossBow()
+    {
+        //啟用手中十字弓的MESH   會再shootAnimationEnd中停用
+        crossbowInHand.GetComponent<MeshRenderer>().enabled = true;
+        crossbowInHand.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+
+        //停用側邊十字弓的MESH   
+        crossbowAside.GetComponent<MeshRenderer>().enabled = false;
+        crossbowAside.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+
+        ropeDrawLine.crossbowInHand();
+    }
+
+    //在綁繩的固體物件中的Rope_Tied_Manager_Script中調用   代表進入綁繩物體範圍  並且接收該物件
+    public void ableToShoot(Transform inRangeTarget)
+    {
+        tiedObjectInRange = inRangeTarget;
+        isAbleToShoot = true;
+    }
+
+    //在綁繩的固體物件中的Rope_Tied_Manager_Script中調用   代表離開綁繩物體範圍
+    public void unAbleToShoot()
+    {
+        tiedObjectInRange = null;
+        isAbleToShoot = false;
+    }
+
+    //讓動畫開始到一定程度再撥放繩子效果     
+    public void crossbowShootSrart()
+    {
+        ropeDrawLine.getDestination(tempShootTarget);
+        ropeDrawLine.crossbowShootRope();
+    }
+
+    //計算十字弓與目標的角度  並傳遞
     public void crossBowShoot()
     {
-        //TODO
-    }
-    //做出射繩動作並綁好繩子(一剛開始要在能綁繩的位置才能觸發) 
+        isShooting = true;
+        float distanceBetweenTarget = 0;
+        float y = 0;
+        charController.enabled = false;
 
-    /// <summary>
-    /// 偵測人物在哪個影子內
-    /// </summary>
-    private void shadowDetect()
-    {
-        isInShadow = false;
-        Vector3 playerPos = transform.position;
-        playerPos.y += 0.5f;
-        for (int i = 0; i < lights.Count; i++)
+        if (tempShootTarget != null)
         {
-            float distance = 0.0f;
-            Light lightCompnent = lights[i].GetComponent<Light>();
+            Vector3 tempRotation = new Vector3(tempShootTarget.transform.position.x - ropeDrawLine.transform.position.x, 0, tempShootTarget.transform.position.z - ropeDrawLine.transform.position.z);
+            this.transform.rotation = Quaternion.LookRotation(tempRotation, Vector3.up);
+            distanceBetweenTarget = Vector3.Distance(new Vector3(ropeDrawLine.transform.position.x, 0, ropeDrawLine.transform.position.z), new Vector3(tempShootTarget.transform.position.x, 0, tempShootTarget.transform.position.z));
+            y = tempShootTarget.transform.position.y - ropeDrawLine.transform.position.y;
+            //Debug.Log("ropeDrawLine=" + ropeDrawLine.transform.position.y);
+            //Debug.Log("tempShootTarget=" + tempShootTarget.transform.position.y);
+            //Debug.Log("angleBetweenTarget=" + angleBetweenTarget);
+        }
+        //tempShootTarget (ropeDrawLine.transform.position);
+        animateController.playShootCrossbowAnimation(distanceBetweenTarget, y);
+    }
 
-            if (lightCompnent.type.ToString() == "Directional")
+
+    //使玩家藉由MainCamera瞄準欲射擊的物件 取得所有可被射擊的物件後進行判斷  會隨著距離改變所需要的精度
+    public void crossbowTargeting()
+    {
+        bool foundTarget = false;           //判斷在範圍內是否有找到物件    用於重製shootingTarget為NULL
+        lastTargetDistance = 0;
+        if (allShootingTargetArray != null)
+        {
+            for (int i = 0; i < allShootingTargetArray.Length; i++)
             {
-                //Debug.Log("Directional Light");
-                // 太陽位置設定
-                // 假設太陽距離(很遠)
-                float sunDis = 10000.0f;
-                Vector3 sunPos = lights[i].transform.rotation * new Vector3(0.0f, 0.0f, -sunDis);
-
-                // 人和太陽實際距離
-                distance = Vector3.Distance(sunPos, playerPos);
-
-                // ray 設定
-                // ray 起點 => 太陽位置， 方向 => 玩家位置 - 太陽位置
-                Ray ray = new Ray(sunPos, (playerPos - sunPos));
-                RaycastHit hit;
-                Debug.DrawRay(ray.origin, ray.direction, Color.red);
-
-                // 光線擋到物體不可以是玩家
-                if (Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
+                Vector3 screenPos = mainCam.WorldToScreenPoint(allShootingTargetArray[i].transform.position);
+                float targetDis = Vector3.Distance(this.transform.position, allShootingTargetArray[i].transform.position);
+                if (targetDis <= 25)
                 {
-                    //Debug.Log("Directional light make you in shadow");
-                    if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
+                    if (screenPos.x >= 400 && screenPos.x <= 700 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
                     {
-                        lightsWithShadows[lights[i]] = hit.transform.gameObject;
-                    }
-                    isInShadow = true;
-                }
-                else
-                {
-                    lightsWithShadows[lights[i]] = null;
-                }
-            }
-            else
-            {
-                distance = Vector3.Distance(lights[i].transform.position, playerPos);
-                // Point light 的判定
-                if (lightCompnent.type.ToString() == "Point")
-                {
-                    Ray ray = new Ray(lights[i].transform.position, (playerPos - lights[i].transform.position));
-                    RaycastHit hit;
-                    Debug.DrawRay(ray.origin, ray.direction, Color.red);
-                    //Debug.Log("SpotLight");
-                    // 判定有沒有在光線範圍內
-                    // 判定光線有沒被物體檔到
-                    // 光線擋到物體不可以是玩家
-                    if (distance <= lightCompnent.range && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
-                    {
-                        if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
-                        {
-                            lightsWithShadows[lights[i]] = hit.transform.gameObject;
-                        }
-                        isInShadow = true;
-                    }
-                    else
-                    {
-                        lightsWithShadows[lights[i]] = null;
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
                     }
                 }
-                // Spot light 的判定 
-                else
+                else if (targetDis <= 50)
                 {
-                    Ray ray = new Ray(lights[i].transform.position, (playerPos - lights[i].transform.position));
-                    RaycastHit hit;
-                    Debug.DrawRay(ray.origin, ray.direction, Color.red);
-                    Vector3 dir = playerPos - lights[i].transform.position;
-                    float angle = Vector3.Angle(dir, lights[i].transform.forward);
-                    // 判定有沒有在光線範圍內
-                    // 判定光線有沒有被物體檔到
-                    // 光線擋到物體不可以是玩家
-                    if (distance <= lightCompnent.range && angle <= lightCompnent.spotAngle / 2 && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
+                    if (screenPos.x >= 450 && screenPos.x <= 650 && screenPos.y >= 150 && screenPos.y <= 300 && targetDis >= lastTargetDistance)
                     {
-                        //Debug.Log("Spot light make you in shadow");
-                        if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
-                        {
-                            lightsWithShadows[lights[i]] = hit.transform.gameObject;
-                        }
-                        isInShadow = true;
-                    }
-                    else
-                    {
-                        lightsWithShadows[lights[i]] = null;
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
                     }
                 }
-            }
-            //Debug.Log(lights[i].name);
-        }
-    }
-    /// <summary>
-    /// 找出所有在場景的光源
-    /// </summary>
-    private void findAllLightsInScene()
-    {
-        Light[] lightArr = FindObjectsOfType(typeof(Light)) as Light[];
-        foreach (Light light in lightArr)
-        {
-            lights.Add(light.gameObject);
-            lightsWithShadows.Add(light.gameObject, null);
-        }
-    }
-    /// <summary>
-    /// 印出你在哪個影子內
-    /// </summary>
-    private void printWhatShadowsIn()
-    {
-        foreach (KeyValuePair<GameObject, GameObject> i in lightsWithShadows)
-        {
-            if (i.Value != null)
-            {
-                Debug.Log("you are in " + i.Value.transform.name + " 's shadow");
-            }
-        }
-    }
-    /// <summary>
-    /// 找出人物身上所有的meshs
-    /// </summary>
-    private void findAllMeshsInScene()
-    {
-        MeshFilter[] meshsFilter = GetComponentsInChildren<MeshFilter>();
-        const string _kachujinMesh = "Kachujin";
-        meshs.Add(transform.Find(_kachujinMesh).gameObject);
-        for (int i = 0; i < meshsFilter.Length; i++)
-        {
-            meshs.Add(meshsFilter[i].gameObject);
-        }
-    }
-
-
-    /// <summary>
-    /// 設立影子邊界座標
-    /// </summary>
-    private void shadowObjectLocalPos()
-    {
-        Vector3 lightPos = Vector3.zero;
-        float dis = 0;
-        if (shadowOwnerLight.GetComponent<Light>().type.ToString() == "Directional")
-        {
-            //Debug.Log("Directional Light");
-            // 太陽位置設定
-            // 假設太陽距離(很遠)
-            float sunDis = 10000.0f;
-            lightPos = shadowOwnerLight.rotation * new Vector3(0.0f, 0.0f, -sunDis);
-            // 常數
-            dis = 1000;
-        }
-        else
-        {
-            dis = 1000;
-            
-        }
-        Ray ray = new Ray(shadowOwner.position, shadowOwner.position - lightPos);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, dis))
-        {
-            if (hit.transform != transform)
-            {
-                shadowMoveDir = shadowPos - hit.point;
-                shadowPos = hit.point;
-
-            }
-
-        }
-        if (isInShadow)
-        {
-            dir = transform.position - shadowPos;
-        }
-
-    }
-
-    /// <summary>
-    /// 設立 shadowOwner& shadowOwnerLight 物件為潛入影子的主人& 燈光
-    /// </summary>
-    private void setShadowsGameObject()
-    {
-        foreach (KeyValuePair<GameObject, GameObject> i in lightsWithShadows)
-        {
-            if (i.Value != null)
-            {
-
-                shadowOwner = i.Value.transform;
-                shadowOwnerLight = i.Key.transform;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 影子移動    
-    /// </summary>
-    private void shadowMove()
-    {
-        newForward = Vector3.zero;
-        if (isInShadow)
-        {
-            setShadowsGameObject();
-        }
-
-        shadowObjectLocalPos();
-        //水平鍵(A,D)有按與否
-        inputHor = Input.GetAxis("Horizontal");
-        //垂直鍵(W,S)有按與否
-        inputVer = Input.GetAxis("Vertical");
-        //滑鼠水平(X軸)移動
-        mouseX = Input.GetAxis("Mouse X");
-        //滑鼠垂直(Y軸)移動
-        mouseY = Input.GetAxis("Mouse Y");
-
-        Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
-        Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
-        
-
-        bool setPos = false;
-
-        RaycastHit hit;
-        //isClimbing = false;
-        // 避免出錯 都先初始化
-        gravity = 20;
-        // 避免滑行問題
-        moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
-        // 偵側牆壁 前方
-        if (Physics.Raycast(rayForward, out hit, 0.5f))
-        {
-            if (hit.transform != transform && inputVer > 0)
-            {
-                if (hit.normal == Vector3.up && isClimbing)
+                else if (targetDis <= 100)
                 {
-                    Quaternion q = transform.rotation;
-                    isClimbing = false;
-                    transform.rotation = Quaternion.Euler(0.0f, q.eulerAngles.y, -q.eulerAngles.z);
+                    if (screenPos.x >= 500 && screenPos.x <= 600 && screenPos.y >= 200 && screenPos.y <= 250 && targetDis >= lastTargetDistance)
+                    {
+                        shootingTarget = allShootingTargetArray[i];
+                        lastTargetDistance = targetDis;
+                        foundTarget = true;
+                    }
                 }
-                else
-                {
-                    //if((transform.forward - hit.normal).y == 0)
-                    //{
-                    Vector3 test = -hit.normal;
-                    test.y = 0;
-                    transform.forward = test;
-                    //}
-                    transform.position = hit.point;
-                    climbWalls(rayForward, true);
-                }
+                //Debug.Log("target is " + targetDis);
+                //Debug.Log("target is " + screenPos.x + " pixels from the left");
+                //Debug.Log("target is " + screenPos.y + " pixels from the bottom");
             }
         }
-        // 偵側牆壁 後方
-        if (Physics.Raycast(rayBack, out hit, 0.5f))
-        {
-            if (hit.transform != transform && inputVer < 0)
-            {
-                if (hit.normal == Vector3.up && isClimbing)
-                {
-                    Quaternion q = transform.rotation;
-                    isClimbing = false;
-                    transform.rotation = Quaternion.Euler(0.0f, q.eulerAngles.y, q.eulerAngles.z);
-                }
-                else
-                {
-                    //if ((transform.forward - hit.normal).y == 0)
-                    //{
-                    Vector3 test = -hit.normal;
-                    test.y = 0;
-                    transform.forward = test;
-                    //}
-                    climbWalls(rayBack, false);
-                }
-                
-                //setPos = true;
-            }
-        }       
+        else shootingTarget = null;
 
-        /*if (charController.isGrounded)
-        {
-            isClimbing = false;
-        }*/
-
-        Ray ray = new Ray(transform.position + transform.up, -transform.up);
-        //Debug.DrawRay(ray.origin, ray.direction, Color.red);
-        // 跑出影子外的計時        
-        if (!isInShadow)
-        {            
-            shadowOutCount += 10;            
-        }
-        else
-        {
-            shadowOutCount = 0;
-        }
-        // 移動
-        if (inputHor != 0 || inputVer != 0)
-        {
-            
-            //以camera LookAt pos與camera本身pos的向量 更改角色forward方向
-            if (((mouseX != 0 || mouseY != 0) && inputHor != 0) || inputVer != 0)
-            {                
-
-                Vector3 camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
-                camFor.y = 0;
-                if (!isClimbing)
-                {
-                    transform.forward = camFor;
-                }                
-                //Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-            }
-
-            // 移動方向
-            moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);            
-            moveDirection *= charSpeed;
-        }
-        moveDirection.y -= gravity * Time.deltaTime;
-
-        // 影子邊界 
-        if (!isInShadow && shadowMoveDir == Vector3.zero || setPos)
-        {
-            if(!isInShadow && shadowMoveDir == Vector3.zero)
-            {
-                transform.position = shadowPos + dir;
-            }
-            setPos = false;
-            
-        }
-        else
-        {            
-            charController.Move(moveDirection * Time.deltaTime);            
-        }
-
-        //退出影子條件       
-        if (/*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
-        {           
-
-            shadowOutCount = 0;
-            isShadowing = false;
-            transformToShadow();
-            gravity = 20;
-        }
+        if (foundTarget == false) shootingTarget = null;                //若範圍內沒找到物件  重置shootingTarget
     }
- 
+    /**********繩索射出*********/
 
-    private void climbWalls(Ray ray, bool isForward)
+    /**********推移物品*********/
+    public void pushingObjectAnimation()
     {
-        isClimbing = true;
-        newForward = alignToSurface(ray);
-        testg = newForward;
-        Debug.Log(testg);
-        Debug.Log(newForward);
-        Debug.Log(transform.forward);
-        float ang = Vector3.Angle(-transform.forward, newForward);
-        Debug.Log(Vector3.Dot(-transform.forward, newForward));
-        Debug.Log(ang);
-        //Debug.Log(ang);
-        //transform.position += Vector3.up * Time.deltaTime * charSpeed;
-        if (isForward)
-        {
-            Quaternion q = transform.rotation;
-            transform.rotation = Quaternion.Euler(-ang, q.eulerAngles.y, q.eulerAngles.z);
-        }
-        else
-        {
-            Quaternion q = transform.rotation;
-            transform.rotation = Quaternion.Euler(ang, q.eulerAngles.y, q.eulerAngles.z);
-        }
-        
-        
+        animateController.pushingObject();
     }
-
+    /**********推移物品*********/
     private void dragMove()             //拖拉物體時的移動
     {
         //水平鍵(A,D)有按與否
@@ -870,6 +551,8 @@ public class TestPlayerController : MonoBehaviour
 
             //計算CAMERA與玩家間的角度
             float camAngle = 0;
+
+
             Vector3 objectForward = this.transform.forward;
             Vector3 camDir = Vector3.zero;
             camDir = freeLookCam.transform.position - this.transform.position;
@@ -878,9 +561,39 @@ public class TestPlayerController : MonoBehaviour
             camAngle = Vector3.Angle(objectForward, camDir);
             //計算CAMERA與玩家間的角度
 
+            //若向前速度 -0.1<=速度<=0.1  重置isFirstIn
+            if (animateController.forward >= -0.1 && animateController.forward <= 0.1) isFirstIn = true;
+
             if (camAngle <= 70)             //在前方
             {
-                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
+                /*************配合動畫************/
+                //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                if ((inputVer * -1 > 0.1 || inputVer * -1 < -0.1) && isFirstIn)
+                {
+                    pushTime = Time.time;
+                    isFirstIn = false;
+                }
+                //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                //若推動時間小於1秒  停止移動
+                if (Time.time - pushTime < 1f)
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                    //Debug.Log(pushTime);
+                }
+                else
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer * -1));
+                }
+                /*************配合動畫************/
+
+
+                //控制FORWARD 變數
+                if (inputVer * -1 > 0.1) animateController.addForward();
+                else if (inputVer * -1 < -0.1) animateController.minusForward();
+                else animateController.setToZero();
+                //Debug.Log("forward");
+                //控制FORWARD 變數
             }
             else if (camAngle > 70 && camAngle <= 115)
             {
@@ -891,62 +604,116 @@ public class TestPlayerController : MonoBehaviour
 
                 if (rightAngle <= 90)       //在右側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
+                    /*************配合動畫************/
+                    //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                    if ((inputHor > 0.1 || inputHor < -0.1) && isFirstIn)
+                    {
+                        pushTime = Time.time;
+                        isFirstIn = false;
+                    }
+                    //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                    //若推動時間小於1秒  停止移動
+                    if (Time.time - pushTime < 1f)
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                        //Debug.Log(pushTime);
+                    }
+                    else
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor));
+                    }
+                    /*************配合動畫************/
+
+
+
+
+                    //控制FORWARD 變數
+                    if (inputHor > 0.1) animateController.addForward();
+                    else if (inputHor < -0.1) animateController.minusForward();
+                    else animateController.setToZero();
+                    //控制FORWARD 變數
+                    //Debug.Log("right");
                 }
                 else                        //在左側
                 {
-                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
+                    /*************配合動畫************/
+                    //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                    if ((inputHor * -1 > 0.1 || inputHor * -1 < -0.1) && isFirstIn)
+                    {
+                        pushTime = Time.time;
+                        isFirstIn = false;
+                    }
+                    //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                    //若推動時間小於1秒  停止移動
+                    if (Time.time - pushTime < 1f)
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                        //Debug.Log(pushTime);
+                    }
+                    else
+                    {
+                        moveDirection = transform.TransformDirection(new Vector3(0, 0, inputHor * -1));
+                    }
+                    /*************配合動畫************/
+
+
+
+
+                    //控制FORWARD 變數
+                    if (inputHor * -1 > 0.1) animateController.addForward();
+                    else if (inputHor * -1 < -0.1) animateController.minusForward();
+
+                    else animateController.setToZero();
+                    //控制FORWARD 變數
+                    Debug.Log("left");
+
+
                 }
             }
             else                            //在後方
             {
-                moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
+                /*************配合動畫************/
+                //若速度>0.1  或 <-0.1  且為第一次進入      紀錄開始推動時的時間    
+                if ((inputVer > 0.1 || inputVer < -0.1) && isFirstIn)
+                {
+                    pushTime = Time.time;
+                    isFirstIn = false;
+                }
+                //Debug.Log("T-P="+(Time.time - pushTime)+"T="+Time.time+"p="+pushTime);
+
+                //若推動時間小於1秒  停止移動
+                if (Time.time - pushTime < 1f)
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, 0));
+                    //Debug.Log(pushTime);
+                }
+                else
+                {
+                    moveDirection = transform.TransformDirection(new Vector3(0, 0, inputVer));
+                }
+                /*************配合動畫************/
+
+
+
+
+                //控制FORWARD 變數
+                if (inputVer > 0.1) animateController.addForward();
+                else if (inputVer < -0.1) animateController.minusForward();
+                else animateController.setToZero();
+                //控制FORWARD 變數
+                Debug.Log("backward");
+
             }
 
             moveDirection *= charSpeed;
         }
+        //重置FORWARD
+        else animateController.setToZero();
+
 
         moveDirection.y -= gravity * Time.deltaTime;
         charController.Move(moveDirection * Time.deltaTime);
-    }
-
-
-
-    private Vector3 alignToSurface(Ray inputRay)
-    {
-        
-        Vector3 playerCenter = transform.position + Vector3.up;
-        RaycastHit hit;        
-        if (Physics.Raycast(inputRay, out hit, 5.0f))
-        {
-            Vector3 newRight;
-            testb = hit.normal;
-            if (hit.normal.y == 0 || hit.normal.y == 1)
-            {                
-                if (hit.normal.y == 1)
-                {                   
-                    newRight = transform.right;
-                }
-                else
-                {
-                    newRight = -transform.right;
-                }    
-            }
-            else
-            {
-                newRight = -Vector3.Cross(hit.normal, transform.forward);
-                testr = newRight;
-            }
-            /**/
-
-
-            return Vector3.Cross(hit.normal, newRight);
-            
-        }
-        else
-        {
-            //isWall = false;
-            return Vector3.zero;
-        }
     }
 }
