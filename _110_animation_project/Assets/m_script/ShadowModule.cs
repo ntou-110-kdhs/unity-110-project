@@ -246,10 +246,10 @@ public class ShadowModule : MonoBehaviour
             moveDirection = transform.TransformDirection(new Vector3(inputHor, 0, inputVer)/*.normalized*/);
             moveDirection *= charSpeed;
         }
-        if (!isClimbingVer && !isClimbingHor)
+        /*if (!isClimbingVer && !isClimbingHor)
         {
             moveDirection.y -= gravity * Time.deltaTime;
-        }
+        }*/
 
 
         // 影子邊界 
@@ -288,14 +288,31 @@ public class ShadowModule : MonoBehaviour
         gravity = 20;
         // 避免滑行問題
         moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
+
+        // RFTD = ray forward turning detect;
+        Vector3 tmpPos = transform.position + (transform.forward / 10 + transform.up / 20);
+        Ray RFTD = new Ray(tmpPos, (transform.position - transform.up / 20) - tmpPos);
+        Debug.DrawRay(RFTD.origin, RFTD.direction, Color.red);
+        if (Physics.Raycast(RFTD, out RaycastHit tmpHit, 1.5f))
+        {
+            Debug.Log(tmpHit.normal);
+            climbWalls(tmpHit.normal, true);
+            Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
+            transform.rotation = rot * transform.rotation;
+        }
+        else
+        {
+            Debug.Log("not hit anything");
+        }
+
         // 偵側牆壁 前方
-        if (Physics.Raycast(rayForward, out hit, 0.5f))
+        /*if (Physics.Raycast(rayForward, out hit, 0.5f))
         {
             if (hit.transform != transform && inputVer > 0)
             {
                 wallForward = -hit.normal;
                 wallForward.y = 0;
-                if (!isClimbingVer)
+                if (!isClimbingVer && !isClimbingHor)
                 {
                     transform.forward = wallForward;
                 }
@@ -305,7 +322,10 @@ public class ShadowModule : MonoBehaviour
 
             }
 
-        }
+        }*/
+
+        
+
         // 偵側牆壁 後方
         if (Physics.Raycast(rayBack, out hit, 0.5f))
         {
@@ -313,7 +333,7 @@ public class ShadowModule : MonoBehaviour
             {
                 wallForward = hit.normal;
                 wallForward.y = 0;
-                if (!isClimbingVer)
+                if (!isClimbingVer && !isClimbingHor)
                 {
                     transform.forward = wallForward;
                 }
@@ -329,7 +349,7 @@ public class ShadowModule : MonoBehaviour
             {
                 wallForward = Vector3.Cross(-hit.normal, transform.up);
                 wallForward.y = 0;
-                if (!isClimbingHor)
+                if (!isClimbingVer && !isClimbingHor)
                 {
                     transform.forward = wallForward;
                 }
@@ -345,7 +365,7 @@ public class ShadowModule : MonoBehaviour
             {
                 wallForward = Vector3.Cross(hit.normal, transform.up);
                 wallForward.y = 0;
-                if (!isClimbingHor)
+                if (!isClimbingVer && !isClimbingHor)
                 {
                     transform.forward = wallForward;
                 }

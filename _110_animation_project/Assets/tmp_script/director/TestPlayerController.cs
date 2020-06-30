@@ -344,6 +344,12 @@ public class TestPlayerController : MonoBehaviour
     {
         shadowModule.IsShadowing = true;
         shadowModule.transformToShadow();
+        if (!shadowModule.IsInShadow)
+        {
+            shadowModule.IsShadowing = false;
+            shadowModule.transformToShadow();
+        }
+        
         //想做啥
         //transformToShadow();
     }
