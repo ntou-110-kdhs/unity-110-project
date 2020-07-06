@@ -485,19 +485,21 @@ public class ShadowModule : MonoBehaviour
 
     private bool isFlatform(Vector3 vec)
     {
+
         int count = 0;
-        if (vec.x == 0)
+        if (System.Math.Abs(1 - vec.x) > 0.995)
         {
             count++;
         }
-        if (vec.y == 0)
+        if (System.Math.Abs(1 - vec.y) > 0.995)
         {
             count++;
         }
-        if (vec.z == 0)
+        if (System.Math.Abs(1 - vec.z) > 0.995)
         {
             count++;
         }
+        Debug.Log(count);
         if (count >= 2)
         {
             return true;
