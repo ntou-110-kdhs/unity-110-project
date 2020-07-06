@@ -139,7 +139,7 @@ public class TestPlayerController : MonoBehaviour
             if (Input.GetKey(KeyCode.E) && !shadowModule.IsShadowing && shadowModule.IsInShadow && !isPushingObject)
             {
                 if (Time.time - shadowModule.DelayCount > 0.20f)
-                {
+                {                    
                     animateController.jumpIntoShadow();
                 }
             }

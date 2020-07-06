@@ -94,6 +94,7 @@ public class ShadowModule : MonoBehaviour
     private Vector3 testg;
     private Vector3 testb;
     [SerializeField] private Transform testShowShadowPosCube;
+    bool setForward = false;
     /********Debug用*******/
 
     // Start is called before the first frame update
@@ -235,7 +236,7 @@ public class ShadowModule : MonoBehaviour
                 camFor.y = 0;
                 if (!isClimbingVer && !isClimbingHor)
                 {
-                    transform.forward = camFor;
+                    //transform.forward = camFor;
                 }
 
 
@@ -283,30 +284,19 @@ public class ShadowModule : MonoBehaviour
         Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
         Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
         Ray rayLeft = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.right);
+        
         RaycastHit hit;
         // 避免出錯 都先初始化
         gravity = 20;
         // 避免滑行問題
         moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
 
-        // RFTD = ray forward turning detect;
-        Vector3 tmpPos = transform.position + (transform.forward / 10 + transform.up / 20);
-        Ray RFTD = new Ray(tmpPos, (transform.position - transform.up / 20) - tmpPos);
-        Debug.DrawRay(RFTD.origin, RFTD.direction, Color.red);
-        if (Physics.Raycast(RFTD, out RaycastHit tmpHit, 1.5f))
-        {
-            Debug.Log(tmpHit.normal);
-            climbWalls(tmpHit.normal, true);
-            Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
-            transform.rotation = rot * transform.rotation;
-        }
-        else
-        {
-            Debug.Log("not hit anything");
-        }
-
+        // RFTD = ray forward turning detect;        
+        Vector3 startPos = transform.position - transform.forward / 10 + transform.up / 30;
+        Vector3 endPos = transform.position - transform.forward / 3 - transform.up / 10;
+        Ray RFTD = new Ray(startPos, endPos - startPos);
         // 偵側牆壁 前方
-        /*if (Physics.Raycast(rayForward, out hit, 0.5f))
+        if (Physics.Raycast(rayForward, out hit, 0.5f))
         {
             if (hit.transform != transform && inputVer > 0)
             {
@@ -319,13 +309,37 @@ public class ShadowModule : MonoBehaviour
                 climbWalls(hit.normal, true);
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
                 transform.rotation = rot * transform.rotation;
-
+                Debug.Log(Time.time);
             }
+            
 
-        }*/
-
+        }
+        // 偵測轉角 前方
+        else if (Physics.Raycast(RFTD, out hit, 2.5f))
+        {
+            if (hit.transform != transform && inputVer > 0)
+            {                
+                climbWalls(hit.normal, true);
+                Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
+                if (rot != Quaternion.identity)
+                {                    
+                    wallForward = hit.normal;
+                    wallForward.y = 0;                    
+                    if(!isClimbingHor && !isClimbingVer)
+                    {
+                        rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                        transform.rotation = rot * transform.rotation;
+                    }                    
+                    rot = Quaternion.FromToRotation(transform.forward, newForward);
+                    transform.rotation = rot * transform.rotation;
+                    Debug.Log(Time.time);
+                }
+            }
+        }
         
-
+        startPos = transform.position + transform.forward / 10 + transform.up / 30;
+        endPos = transform.position + transform.forward / 3 - transform.up / 10;
+        Ray RBTD = new Ray(startPos, endPos - startPos);
         // 偵側牆壁 後方
         if (Physics.Raycast(rayBack, out hit, 0.5f))
         {
@@ -342,7 +356,28 @@ public class ShadowModule : MonoBehaviour
                 transform.rotation = rot * transform.rotation;
             }
         }
+        // 偵測轉角 後方
+        else if (Physics.Raycast(RBTD, out hit, 2.5f))
+        {
+            if (hit.transform != transform && inputVer < 0)
+            {
+                climbWalls(hit.normal, true);
+                Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
+                if (rot != Quaternion.identity)
+                {
+                    wallForward = -hit.normal;
+                    wallForward.y = 0;                    
+                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                    transform.rotation = rot * transform.rotation;
+                    rot = Quaternion.FromToRotation(transform.forward, newForward);
+                    transform.rotation = rot * transform.rotation;
+                }
+            }
+        }
         // 偵側牆壁 右方
+        startPos = transform.position - transform.right / 10 + transform.up / 30;
+        endPos = transform.position - transform.right / 3 - transform.up / 10;
+        Ray RRTD = new Ray(startPos, endPos - startPos);
         if (Physics.Raycast(rayRight, out hit, 0.5f))
         {
             if (hit.transform != transform && inputHor > 0)
@@ -358,7 +393,30 @@ public class ShadowModule : MonoBehaviour
                 transform.rotation = rot * transform.rotation;
             }
         }
+        // 偵測轉角 右方
+       /* else if (Physics.Raycast(RRTD, out hit, 2.5f))
+        {
+            if (hit.transform != transform && inputHor > 0)
+            {
+                climbWalls(hit.normal, false);
+                Quaternion rot = Quaternion.FromToRotation(transform.right, newForward);
+                if (rot != Quaternion.identity)
+                {
+                    transform.rotation *= Quaternion.identity;
+                    wallForward = Vector3.Cross(hit.normal, transform.up);
+                    wallForward.y = 0;
+                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                    transform.rotation = rot * transform.rotation;
+                    rot = Quaternion.FromToRotation(transform.right, newForward);
+                    transform.rotation = rot * transform.rotation;
+                }
+            }
+
+        }*/
         // 偵側牆壁 左方
+        startPos = transform.position + transform.right / 10 + transform.up / 30;
+        endPos = transform.position + transform.right / 3 - transform.up / 10;
+        Ray RLTD = new Ray(startPos, endPos - startPos);
         if (Physics.Raycast(rayLeft, out hit, 0.5f))
         {
             if (hit.transform != transform && inputHor < 0)
@@ -374,6 +432,28 @@ public class ShadowModule : MonoBehaviour
                 transform.rotation = rot * transform.rotation;
             }
         }
+        // 偵測轉角 左方        
+        /*else if (Physics.Raycast(RLTD, out hit, 2.5f))
+        {
+            if (hit.transform != transform && inputHor < 0)
+            {
+                climbWalls(hit.normal, false);
+                Quaternion rot = Quaternion.FromToRotation(transform.right, newForward);
+                if (rot != Quaternion.identity)
+                {
+                    transform.rotation *= Quaternion.identity;
+                    wallForward = Vector3.Cross(-hit.normal, transform.up);
+                    wallForward.y = 0;
+                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                    transform.rotation = rot * transform.rotation;
+                    rot = Quaternion.FromToRotation(transform.right, newForward);
+                    transform.rotation = rot * transform.rotation;
+                }
+            }
+
+        }*/
+        
+
 
 
 
@@ -396,7 +476,6 @@ public class ShadowModule : MonoBehaviour
     }
     private void climbWalls(Vector3 normal, bool isVer)
     {
-
         if (isVer)
         {
             isClimbingVer = true;
