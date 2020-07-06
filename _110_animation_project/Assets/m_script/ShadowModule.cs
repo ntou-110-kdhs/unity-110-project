@@ -236,7 +236,7 @@ public class ShadowModule : MonoBehaviour
                 camFor.y = 0;
                 if (!isClimbingVer && !isClimbingHor)
                 {
-                    //transform.forward = camFor;
+                    transform.forward = camFor;
                 }
 
 
@@ -278,6 +278,8 @@ public class ShadowModule : MonoBehaviour
             gravity = 20;
         }
     }
+
+
     private void rayDetect()
     {
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
@@ -290,7 +292,7 @@ public class ShadowModule : MonoBehaviour
         gravity = 20;
         // 避免滑行問題
         moveDirection = new Vector3(0.0f, 0.0f, 0.0f);
-
+        
         // RFTD = ray forward turning detect;        
         Vector3 startPos = transform.position - transform.forward / 10 + transform.up / 30;
         Vector3 endPos = transform.position - transform.forward / 3 - transform.up / 10;
@@ -309,7 +311,6 @@ public class ShadowModule : MonoBehaviour
                 climbWalls(hit.normal, true);
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
                 transform.rotation = rot * transform.rotation;
-                Debug.Log(Time.time);
             }
             
 
@@ -322,17 +323,18 @@ public class ShadowModule : MonoBehaviour
                 climbWalls(hit.normal, true);
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
                 if (rot != Quaternion.identity)
-                {                    
-                    wallForward = hit.normal;
-                    wallForward.y = 0;                    
-                    if(!isClimbingHor && !isClimbingVer)
+                {
+                    if (isFlatform(hit.normal))
                     {
+                        wallForward = hit.normal;
+                        wallForward.y = 0;
                         rot = Quaternion.FromToRotation(transform.forward, wallForward);
                         transform.rotation = rot * transform.rotation;
-                    }                    
-                    rot = Quaternion.FromToRotation(transform.forward, newForward);
+                        rot = Quaternion.FromToRotation(transform.forward, newForward);
+
+                    }
+
                     transform.rotation = rot * transform.rotation;
-                    Debug.Log(Time.time);
                 }
             }
         }
@@ -356,7 +358,7 @@ public class ShadowModule : MonoBehaviour
                 transform.rotation = rot * transform.rotation;
             }
         }
-        // 偵測轉角 後方
+        // 偵測轉角 後方        
         else if (Physics.Raycast(RBTD, out hit, 2.5f))
         {
             if (hit.transform != transform && inputVer < 0)
@@ -365,11 +367,14 @@ public class ShadowModule : MonoBehaviour
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
                 if (rot != Quaternion.identity)
                 {
-                    wallForward = -hit.normal;
-                    wallForward.y = 0;                    
-                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
-                    transform.rotation = rot * transform.rotation;
-                    rot = Quaternion.FromToRotation(transform.forward, newForward);
+                    if (isFlatform(hit.normal))
+                    {
+                        wallForward = -hit.normal;
+                        wallForward.y = 0;
+                        rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                        transform.rotation = rot * transform.rotation;
+                        rot = Quaternion.FromToRotation(transform.forward, newForward);
+                    }
                     transform.rotation = rot * transform.rotation;
                 }
             }
@@ -393,8 +398,8 @@ public class ShadowModule : MonoBehaviour
                 transform.rotation = rot * transform.rotation;
             }
         }
-        // 偵測轉角 右方
-       /* else if (Physics.Raycast(RRTD, out hit, 2.5f))
+        // 偵測轉角 右方        
+        else if (Physics.Raycast(RRTD, out hit, 2.5f))
         {
             if (hit.transform != transform && inputHor > 0)
             {
@@ -402,17 +407,18 @@ public class ShadowModule : MonoBehaviour
                 Quaternion rot = Quaternion.FromToRotation(transform.right, newForward);
                 if (rot != Quaternion.identity)
                 {
-                    transform.rotation *= Quaternion.identity;
-                    wallForward = Vector3.Cross(hit.normal, transform.up);
-                    wallForward.y = 0;
-                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
-                    transform.rotation = rot * transform.rotation;
-                    rot = Quaternion.FromToRotation(transform.right, newForward);
+                    if (isFlatform(hit.normal))
+                    {
+                        wallForward = Vector3.Cross(hit.normal, transform.up);
+                        wallForward.y = 0;
+                        rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                        transform.rotation = rot * transform.rotation;
+                        rot = Quaternion.FromToRotation(transform.right, newForward);
+                    }
                     transform.rotation = rot * transform.rotation;
                 }
-            }
-
-        }*/
+            }        
+        }
         // 偵側牆壁 左方
         startPos = transform.position + transform.right / 10 + transform.up / 30;
         endPos = transform.position + transform.right / 3 - transform.up / 10;
@@ -433,7 +439,7 @@ public class ShadowModule : MonoBehaviour
             }
         }
         // 偵測轉角 左方        
-        /*else if (Physics.Raycast(RLTD, out hit, 2.5f))
+        else if (Physics.Raycast(RLTD, out hit, 2.5f))
         {
             if (hit.transform != transform && inputHor < 0)
             {
@@ -441,17 +447,18 @@ public class ShadowModule : MonoBehaviour
                 Quaternion rot = Quaternion.FromToRotation(transform.right, newForward);
                 if (rot != Quaternion.identity)
                 {
-                    transform.rotation *= Quaternion.identity;
-                    wallForward = Vector3.Cross(-hit.normal, transform.up);
-                    wallForward.y = 0;
-                    rot = Quaternion.FromToRotation(transform.forward, wallForward);
-                    transform.rotation = rot * transform.rotation;
-                    rot = Quaternion.FromToRotation(transform.right, newForward);
+                    if (isFlatform(hit.normal))
+                    {
+                        wallForward = Vector3.Cross(-hit.normal, transform.up);
+                        wallForward.y = 0;
+                        rot = Quaternion.FromToRotation(transform.forward, wallForward);
+                        transform.rotation = rot * transform.rotation;
+                        rot = Quaternion.FromToRotation(transform.right, newForward);
+                    }                                        
                     transform.rotation = rot * transform.rotation;
                 }
             }
-
-        }*/
+        }
         
 
 
@@ -474,6 +481,32 @@ public class ShadowModule : MonoBehaviour
             Debug.DrawLine(transform.position + transform.up * 2, transform.position + transform.up * 2 + testr * 10, Color.red);
             Debug.DrawLine(transform.position + transform.up * 2, transform.position + transform.up * 2 + testg, Color.green);*/
     }
+
+
+    private bool isFlatform(Vector3 vec)
+    {
+        int count = 0;
+        if (vec.x == 0)
+        {
+            count++;
+        }
+        if (vec.y == 0)
+        {
+            count++;
+        }
+        if (vec.z == 0)
+        {
+            count++;
+        }
+        if (count >= 2)
+        {
+            return true;
+        }        
+        return false;
+    }
+
+    
+
     private void climbWalls(Vector3 normal, bool isVer)
     {
         if (isVer)
