@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028355, g: 0.22571374, b: 0.30692255, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2174,6 +2174,7 @@ GameObject:
   - component: {fileID: 494809044}
   - component: {fileID: 494809043}
   - component: {fileID: 494809042}
+  - component: {fileID: 494809050}
   m_Layer: 0
   m_Name: kachujin_g_rosales
   m_TagString: Untagged
@@ -2238,9 +2239,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   freeLookCam: {fileID: 719850530}
+  mainCam: {fileID: 0}
+  crossbowInHand: {fileID: 0}
+  crossbowAside: {fileID: 0}
   isPushingObject: 0
-  isShadowing: 0
-  ripple: {fileID: 0}
   charSpeed: 6
   charJumpSpeed: 8
   gravity: 20
@@ -2319,6 +2321,27 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &494809050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 494809041}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3526dc618dddfb548aef5cc7d17ff518, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  freeLookCam: {fileID: 719850530}
+  ripple: {fileID: 0}
+  isClimbingVer: 0
+  isClimbingHor: 0
+  isWall: 0
+  charSpeed: 6
+  charJumpSpeed: 8
+  gravity: 20
+  testShowShadowPosCube: {fileID: 0}
 --- !u!1 &498282923
 GameObject:
   m_ObjectHideFlags: 0
@@ -4465,11 +4488,13 @@ MonoBehaviour:
   walkSpeed: 6
   runSpeed: 8
   turnSpeed: 0.1
+  wonderRate: 0
+  alertRate: 0
   currentState: 0
+  actRestTme: 1
   actionWeight:
   - 2000
   - 2000
-  actRestTme: 1
 --- !u!195 &974482257
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5915,7 +5940,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1469757518}
-  m_LocalRotation: {x: 0.0942016, y: 0.000000029263285, z: 0.0000000016356799, w: 0.99555314}
+  m_LocalRotation: {x: 0.09420161, y: -0.0000000013332565, z: 0.0000000045307975,
+    w: 0.99555314}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -9145,8 +9171,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1977920910}
-  m_LocalRotation: {x: 0.12267661, y: 0.000000034152833, z: -0.0000000042216417, w: 0.9924467}
-  m_LocalPosition: {x: -13.52, y: 4.5, z: -21.24}
+  m_LocalRotation: {x: -0.000000016307771, y: 0.85065085, z: -0.5257311, w: -0.00000002638654}
+  m_LocalPosition: {x: -11.89, y: 15.08, z: 1.5300002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
