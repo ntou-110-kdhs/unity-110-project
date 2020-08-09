@@ -44,8 +44,11 @@ public class FindRoadController : MonoBehaviour
     [SerializeField] private float turnSpeed;         //转身速度，建议0.1
 
     [Header("警戒率")]
-    [SerializeField] private float wonderRate = 0.0f;               //警戒第一階段比率
+    //[Range(0, 100)]
+    //[SerializeField] private float wonderRate = 0.0f;               //警戒第一階段比率
+    [Range(0, 100)]
     [SerializeField] private float alertRate = 0.0f;                //警戒第二階段比率
+    private float alertLstLostTime = 0.0f;                          //The last time lost the target.
 
     private enum MonsterState
     {
@@ -267,8 +270,7 @@ public class FindRoadController : MonoBehaviour
                 ReturnCheck();
                 break;
         }
-
-
+        alertRateCtl();
     }
 
     /// <summary>
@@ -314,13 +316,13 @@ public class FindRoadController : MonoBehaviour
             return;
         }
 
-        if (diatanceToPlayer < attackRadius)
+        if (diatanceToPlayer < attackRadius || alertRate == 100.0f)
         {
             Debug.Log("Attack EnemyDistanceCheck");
             //if currentState != MonsterState.CHASE
             currentState = MonsterState.CHASE;
         }
-        else if (diatanceToPlayer < defendRadius)
+        else if (diatanceToPlayer < defendRadius || alertRate == 100.0f) 
         {
 
             currentState = MonsterState.CHASE;
@@ -340,11 +342,12 @@ public class FindRoadController : MonoBehaviour
         if (!alertAngleWithRaycast())
         {
             //currentState = MonsterState.STAND;
-            currentState = MonsterState.RETURN;
+            //alert rate active
+            if (!(alertRate > 0.0f)) currentState = MonsterState.RETURN;
             return;
         }
         //if (alertAngleWithRaycast()) return;
-        if (diatanceToPlayer < defendRadius)
+        if (diatanceToPlayer < defendRadius || alertRate == 100.0f) 
         {
             is_Warned = false;
             currentState = MonsterState.CHASE;
@@ -466,6 +469,44 @@ public class FindRoadController : MonoBehaviour
         //Debug.Log("target : " + isHittingEqual);
 
         return ret;
+    }
+    /// <summary>
+    /// 警戒率控制
+    /// </summary>
+    private void alertRateCtl()
+    {
+        switch (currentState)
+        {
+            case MonsterState.WARN:
+                if (!alertAngleWithRaycast())
+                {
+                    if (alertLstLostTime == 0.0f) alertLstLostTime = Time.time;
+                    if (Time.time - alertLstLostTime >= 0.0f) alertRate -= 0.8f;
+                }
+                else
+                {
+                    alertLstLostTime = 0.0f;
+                    alertRate += 1.0f;
+                }
+                break;
+            case MonsterState.CHASE:
+                alertLstLostTime = 0.0f;
+                alertRate = 100.0f;
+                break;
+            default:
+                alertLstLostTime = 0.0f;
+                if (alertRate > 0.0f) alertRate -= 0.8f;
+                break;
+        }
+
+        if (alertRate < 0.0f)
+        {
+            alertRate = 0.0f;
+        }
+        else if (alertRate > 100.0f)
+        {
+            alertRate = 100.0f;
+        }
     }
     private void OnDrawGizmosSelected()
     {
