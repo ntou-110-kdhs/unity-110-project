@@ -11,6 +11,7 @@ public class FindRoadController : MonoBehaviour
     //private Ray rayToTarget;
     private RaycastHit hitInfo;
 
+    [Header("路線物件")]
     [SerializeField] private GameObject agentRoadSet;
     [SerializeField] private Transform agentRoadSubSet;
     [SerializeField] private Transform[] setPoints;
@@ -26,7 +27,8 @@ public class FindRoadController : MonoBehaviour
     private Vector3 initialPosition;            //初始位置
     //private Vector3 moveDirection = Vector3.zero;
     //[SerializeField] private float gravity = 20.0f;
-
+    
+    [Header("狀態反映範圍")]
     [SerializeField] private float wanderRadius = 5f;          //游走半径，移动状态下，如果超出游走半径会返回出生位置
     [SerializeField] private float defendRadius = 6f;          //自卫半径，玩家进入后怪物会追击玩家，当距离<攻击距离则会发动攻击（或者触发战斗）
     [SerializeField] private float alertRadius = 8f;         //警戒半径，玩家进入后怪物会发出警告，并一直面朝玩家
@@ -34,12 +36,19 @@ public class FindRoadController : MonoBehaviour
 
     [SerializeField] private float attackRadius = 3f;            //攻击距离
 
+    [Header("NPC反映參數")]
     [Range(0, 180)]
     [SerializeField] private float alertAngle;         //視角範圍
-
     [SerializeField] private float walkSpeed;          //移动速度
     [SerializeField] private float runSpeed;          //跑动速度
     [SerializeField] private float turnSpeed;         //转身速度，建议0.1
+
+    [Header("警戒率")]
+    //[Range(0, 100)]
+    //[SerializeField] private float wonderRate = 0.0f;               //警戒第一階段比率
+    [Range(0, 100)]
+    [SerializeField] private float alertRate = 0.0f;                //警戒第二階段比率
+    private float alertLstLostTime = 0.0f;                          //The last time lost the target.
 
     private enum MonsterState
     {
@@ -55,12 +64,13 @@ public class FindRoadController : MonoBehaviour
     //{
     //    get { return MonsterState; }
     //}
-
+    [Header("狀態")]
     [SerializeField] private MonsterState currentState = MonsterState.STAND;          //默认状态为原地呼吸
-
-    [SerializeField] private float[] actionWeight = { 1000, 1000 };         //设置待机时各种动作的权重，顺序依次为呼吸、观察/*、移动*/
     [SerializeField] private float actRestTme;            //更换待机指令的间隔时间
     private float lastActTime;          //最近一次指令时间
+
+    [Header("狀態權重")]
+    [SerializeField] private float[] actionWeight = { 1000, 1000 };         //设置待机时各种动作的权重，顺序依次为呼吸、观察/*、移动*/
 
     private float diatanceToPlayer;         //怪物与玩家的距离
     private float diatanceToInitial;         //怪物与初始位置的距离
@@ -132,7 +142,9 @@ public class FindRoadController : MonoBehaviour
                 isSetPoint = true;
             }
             agent.SetDestination(setPoints[nextPoint].position);
-            if (transform.position.x == tmpXYZ.x && transform.position.z == tmpXYZ.z && Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
+            if (    transform.position.x == tmpXYZ.x 
+                &&  transform.position.z == tmpXYZ.z 
+                &&  Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
             {
                 //initialPosition = setPoints[nextPoint].position;
                 Debug.Log("NPC position : " + transform.position);
@@ -258,8 +270,7 @@ public class FindRoadController : MonoBehaviour
                 ReturnCheck();
                 break;
         }
-
-
+        alertRateCtl();
     }
 
     /// <summary>
@@ -305,13 +316,13 @@ public class FindRoadController : MonoBehaviour
             return;
         }
 
-        if (diatanceToPlayer < attackRadius)
+        if (diatanceToPlayer < attackRadius || alertRate == 100.0f)
         {
             Debug.Log("Attack EnemyDistanceCheck");
             //if currentState != MonsterState.CHASE
             currentState = MonsterState.CHASE;
         }
-        else if (diatanceToPlayer < defendRadius)
+        else if (diatanceToPlayer < defendRadius || alertRate == 100.0f) 
         {
 
             currentState = MonsterState.CHASE;
@@ -331,11 +342,12 @@ public class FindRoadController : MonoBehaviour
         if (!alertAngleWithRaycast())
         {
             //currentState = MonsterState.STAND;
-            currentState = MonsterState.RETURN;
+            //alert rate active
+            if (!(alertRate > 0.0f)) currentState = MonsterState.RETURN;
             return;
         }
         //if (alertAngleWithRaycast()) return;
-        if (diatanceToPlayer < defendRadius)
+        if (diatanceToPlayer < defendRadius || alertRate == 100.0f) 
         {
             is_Warned = false;
             currentState = MonsterState.CHASE;
@@ -420,23 +432,24 @@ public class FindRoadController : MonoBehaviour
     /// </summary>
     private bool alertAngleWithRaycast()
     {
-        bool ret = false,isShadowing = target.GetComponent<ShadowModule>().IsShadowing;
-        Vector3 targetTransTmp = target.transform.position,transTmp = transform.position;
-        targetTransTmp.y += 1;
-        transTmp.y += 1;
+        bool    ret = false,
+                isShadowing = target.GetComponent<ShadowModule>().IsShadowing;
+        Vector3 targetTransTmp  = target.transform.position,
+                transTmp        = transform.position;
         Vector3 targetDirect = targetTransTmp - transTmp;
         float angle = Vector3.Angle(targetDirect, transform.forward);
+        targetTransTmp.y += 1;
+        transTmp.y += 1;
 
         //if (Physics.Raycast(transTmp, targetDirect, out hitInfo))
         //    Debug.Log("hitInfo : " + hitInfo.collider.gameObject.name);
         //else
         //    Debug.Log("Raycast not active.");
         //Debug.DrawLine(transTmp, transTmp + targetDirect.normalized * alertRadius, Color.red);
-        bool aA = angle <= alertAngle,isHitting = Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius);
-        bool isEqualTar = isHitting ? hitInfo.collider.gameObject.transform == target : false;
-        //if (angle <= alertAngle && Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius) && hitInfo.collider.gameObject == target)
-        if (aA && isHitting && isEqualTar && !isShadowing)
-            //if ((angle <= alertAngle && hitInfo.collider.gameObject == target) || hitInfo.collider.gameObject != target)
+        bool    isAngleEqual    = angle <= alertAngle,
+                isHitting       = Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius);
+        bool    isHittingEqual  = isHitting ? hitInfo.collider.gameObject.transform == target : false;
+        if (isAngleEqual && isHitting && isHittingEqual && !isShadowing)
         {
             //Debug.Log("Alertistrue is True.");
             //if(angle <= alertAngle)
@@ -450,27 +463,65 @@ public class FindRoadController : MonoBehaviour
             //Debug.Log("hitInfo : " + hitInfo.collider.gameObject.name);
             ret = false;
         }
-        Debug.Log("angle <= alertAngle : " + aA);
-        Debug.Log("Physics.Raycast : " + isHitting);
-        Debug.Log("hitInfo.collider.gameObject == target : " + isEqualTar);
-        //Debug.Log("target : " + isEqualTar);
+        //Debug.Log("angle <= alertAngle : " + isAngleEqual);
+        //Debug.Log("Physics.Raycast : " + isHitting);
+        //Debug.Log("hitInfo.collider.gameObject == target : " + isHittingEqual);
+        //Debug.Log("target : " + isHittingEqual);
 
         return ret;
     }
+    /// <summary>
+    /// 警戒率控制
+    /// </summary>
+    private void alertRateCtl()
+    {
+        switch (currentState)
+        {
+            case MonsterState.WARN:
+                if (!alertAngleWithRaycast())
+                {
+                    if (alertLstLostTime == 0.0f) alertLstLostTime = Time.time;
+                    if (Time.time - alertLstLostTime >= 0.0f) alertRate -= 0.8f;
+                }
+                else
+                {
+                    alertLstLostTime = 0.0f;
+                    alertRate += 1.0f;
+                }
+                break;
+            case MonsterState.CHASE:
+                alertLstLostTime = 0.0f;
+                alertRate = 100.0f;
+                break;
+            default:
+                alertLstLostTime = 0.0f;
+                if (alertRate > 0.0f) alertRate -= 0.8f;
+                break;
+        }
+
+        if (alertRate < 0.0f)
+        {
+            alertRate = 0.0f;
+        }
+        else if (alertRate > 100.0f)
+        {
+            alertRate = 100.0f;
+        }
+    }
     private void OnDrawGizmosSelected()
     {
-        //Debug.Log("OnDrawGizmosSelected");
         Vector3 Position = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
-        Color tmpBlue = Color.blue;
-        tmpBlue.a = 0.5f;
-        Handles.color = tmpBlue;
         Vector3 StartLine = Quaternion.Euler(0, -alertAngle, 0) * transform.forward;
-        Handles.DrawSolidArc(Position, transform.up, StartLine, alertAngle, alertRadius);
-        //Handles.color = color;
+        Color tmpBlue = Color.blue;
         Color tmpRed = Color.red;
+        tmpBlue.a = 0.5f;
         tmpRed.a = 0.5f;
-        Handles.color = tmpRed;
+
+        Handles.color = tmpBlue;
+        Handles.DrawSolidArc(Position, transform.up, StartLine, alertAngle, alertRadius);
+
         StartLine = Quaternion.Euler(0, alertAngle, 0) * transform.forward;
+        Handles.color = tmpRed;
         Handles.DrawSolidArc(Position, transform.up, StartLine, -alertAngle, alertRadius);
     }
     //void OnDrawGizmosSelected()
