@@ -40,11 +40,11 @@ public class ShadowModule : MonoBehaviour
     // 是否爬牆
     [SerializeField] private bool isClimbingVer = false;
     [SerializeField] private bool isClimbingHor = false;
-    private Vector3 newForward = Vector3.zero;
+    [SerializeField] private Vector3 newForward = Vector3.zero;
     private Vector3 wallForward = Vector3.zero;
     // 飛行延遲
     private int shadowOutCount = 0;
-    [SerializeField] private bool isWall = false;
+    private bool isWall = false;
     /**********影子邊界*********/
     private Vector3 dir = Vector3.zero;
     private Transform shadowOwner;
@@ -268,6 +268,17 @@ public class ShadowModule : MonoBehaviour
             charController.Move(moveDirection * Time.deltaTime);
         }
 
+        RaycastHit hit;
+        Ray testRay = new Ray(transform.position, -transform.up);
+        if (Physics.Raycast(testRay, out hit, 1f))
+        {
+            if (Vector3.Distance(hit.point, transform.position) >= 0.1)
+            {
+                transform.position = hit.point;
+            }
+
+        }
+
         //退出影子條件       
         if (/*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
         {
@@ -279,9 +290,12 @@ public class ShadowModule : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// 偵側牆壁的RayCast們    
+    /// </summary>
     private void rayDetect()
     {
+
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
         Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
         Ray rayRight = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.right);
@@ -296,45 +310,58 @@ public class ShadowModule : MonoBehaviour
         // RFTD = ray forward turning detect;        
         Vector3 startPos = transform.position - transform.forward / 10 + transform.up / 30;
         Vector3 endPos = transform.position - transform.forward / 3 - transform.up / 10;
+
+       
         Ray RFTD = new Ray(startPos, endPos - startPos);
         // 偵側牆壁 前方
         if (Physics.Raycast(rayForward, out hit, 0.5f))
         {
+            
             if (hit.transform != transform && inputVer > 0)
             {
                 wallForward = -hit.normal;
                 wallForward.y = 0;
+
+                // 如果不是爬牆  下牆 or 爬完牆
                 if (!isClimbingVer && !isClimbingHor)
                 {
                     transform.forward = wallForward;
                 }
                 climbWalls(hit.normal, true);
+                // 計算旋轉
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
-                transform.rotation = rot * transform.rotation;
-            }
-            
 
+                transform.rotation = rot * transform.rotation;
+            }            
         }
         // 偵測轉角 前方
         else if (Physics.Raycast(RFTD, out hit, 2.5f))
         {
             if (hit.transform != transform && inputVer > 0)
-            {                
+            {
+                
                 climbWalls(hit.normal, true);
                 Quaternion rot = Quaternion.FromToRotation(transform.forward, newForward);
                 if (rot != Quaternion.identity)
                 {
+                    // 
                     if (isFlatform(hit.normal))
                     {
                         wallForward = hit.normal;
                         wallForward.y = 0;
+                        // 轉正
                         rot = Quaternion.FromToRotation(transform.forward, wallForward);
                         transform.rotation = rot * transform.rotation;
+                        // 旋轉
                         rot = Quaternion.FromToRotation(transform.forward, newForward);
 
                     }
-
                     transform.rotation = rot * transform.rotation;
+                    
+                    transform.position = hit.point;
+                    Debug.Log("hitPos = " + hit.point);
+                    Debug.Log("transformPos = " + transform.position);
+
                 }
             }
         }
@@ -483,9 +510,14 @@ public class ShadowModule : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 檢查是否為平台
+    /// 三種方向向量去減掉
+    /// 如果有兩種是接近 "0" 則代表他是平台
+    /// </summary>        
     private bool isFlatform(Vector3 vec)
     {
-
+       
         int count = 0;
         if (System.Math.Abs(1 - vec.x) > 0.995)
         {
@@ -498,8 +530,7 @@ public class ShadowModule : MonoBehaviour
         if (System.Math.Abs(1 - vec.z) > 0.995)
         {
             count++;
-        }
-        Debug.Log(count);
+        }        
         if (count >= 2)
         {
             return true;
@@ -508,6 +539,9 @@ public class ShadowModule : MonoBehaviour
     }
 
     
+    /// <summary>
+    /// 
+    /// </summary>
 
     private void climbWalls(Vector3 normal, bool isVer)
     {
