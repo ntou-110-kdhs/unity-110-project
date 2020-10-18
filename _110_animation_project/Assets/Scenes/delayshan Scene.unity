@@ -5228,7 +5228,6 @@ MonoBehaviour:
   mainCam: {fileID: 0}
   crossbowInHand: {fileID: 0}
   crossbowAside: {fileID: 0}
-  isPushingObject: 0
   charSpeed: 6
   charJumpSpeed: 8
   gravity: 20
@@ -5307,9 +5306,6 @@ MonoBehaviour:
   mainCam: {fileID: 897002738}
   crossbowInHand: {fileID: 602705030}
   crossbowAside: {fileID: 614089415}
-  isPushingObject: 0
-  isShadowing: 0
-  ripple: {fileID: 0}
   charSpeed: 6
   charJumpSpeed: 8
   gravity: 20
@@ -5329,11 +5325,28 @@ MonoBehaviour:
   ripple: {fileID: 5064226445815285177, guid: 749b2b1cde1690c4fb22e08cdf4de713, type: 3}
   isClimbingVer: 0
   isClimbingHor: 0
-  isWall: 0
+  newForward: {x: 0, y: 0, z: 0}
   charSpeed: 6
   charJumpSpeed: 8
   gravity: 20
   testShowShadowPosCube: {fileID: 0}
+--- !u!114 &1398885186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1398885176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df569dfc985b89f439e00e7b140bf462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  freeLookCam: {fileID: 897428992}
+  isPushingObject: 0
+  charSpeed: 6
+  charJumpSpeed: 8
+  gravity: 20
 --- !u!1 &1410301663
 GameObject:
   m_ObjectHideFlags: 0
@@ -5892,7 +5905,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1732274708}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.03, y: 4.5, z: 38.44}
+  m_LocalPosition: {x: -0.03, y: 4.5, z: 29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
