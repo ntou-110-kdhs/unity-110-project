@@ -129,20 +129,11 @@ public class PlayerController : MonoBehaviour
 
 
         /**********潛入影子*********/
-        if (charController.isGrounded)
+        if (charController.isGrounded && shadowModule.IsInShadow && !isPushingObject)
         {
-            if (Input.GetKey(KeyCode.E) && !shadowModule.IsShadowing && shadowModule.IsInShadow && !pushModule.IsPushingObject)
+            if (Input.GetKeyDown(KeyCode.E) && !shadowModule.IsShadowing)
             {
-                if (Time.time - shadowModule.DelayCount > 0.20f)
-                {
-                    animateController.jumpIntoShadow();
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.E) && shadowModule.IsInShadow && charController.isGrounded && !pushModule.IsPushingObject)
-            {
-                shadowModule.IsShadowing = !shadowModule.IsShadowing;
-                shadowModule.transformToShadow();
-                shadowModule.DelayCount = Time.time;
+                animateController.jumpIntoShadow();
             }
         }
         /**********潛入影子*********/
@@ -279,12 +270,11 @@ public class PlayerController : MonoBehaviour
     //潛入影子動畫結束
     public void playerControllerJIS()
     {
-        shadowModule.IsShadowing = true;
-        shadowModule.transformToShadow();
+        shadowModule.transformToShadow(true);
         if (!shadowModule.IsInShadow)
         {
-            shadowModule.IsShadowing = false;
-            shadowModule.transformToShadow();
+            //shadowModule.IsShadowing = false;
+            shadowModule.transformToShadow(false);
         }
 
         //想做啥

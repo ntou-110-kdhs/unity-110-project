@@ -12,7 +12,7 @@ public class ShadowModule : MonoBehaviour
 
     /**********影子偵測*********/
     //你人是否站在影子上
-    private bool isInShadow = false;
+    [SerializeField] private bool isInShadow = false;
     public bool IsInShadow { get { return isInShadow; } }
     //光源的陣列
     private List<GameObject> lights = new List<GameObject>();
@@ -23,7 +23,7 @@ public class ShadowModule : MonoBehaviour
 
     /**********潛入影子*********/
     //你人是否"進入"影子內
-    private bool isShadowing = false;
+    [SerializeField] private bool isShadowing = false;
     public bool IsShadowing { get { return isShadowing; } set { isShadowing = value; } } 
 
     //人物身上的mesh物件陣列
@@ -40,10 +40,11 @@ public class ShadowModule : MonoBehaviour
     // 是否爬牆
     [SerializeField] private bool isClimbingVer = false;
     [SerializeField] private bool isClimbingHor = false;
-    [SerializeField] private Vector3 newForward = Vector3.zero;
+    private Vector3 newForward = Vector3.zero;
     private Vector3 wallForward = Vector3.zero;
-    // 飛行延遲
+    // 出影子判定相關
     private int shadowOutCount = 0;
+    private bool isInAir = false;
     private bool isWall = false;
     /**********影子邊界*********/
     private Vector3 dir = Vector3.zero;
@@ -120,15 +121,18 @@ public class ShadowModule : MonoBehaviour
     /// <summary>
     /// 潛入影子
     /// </summary>
-    public void transformToShadow()
+    public void transformToShadow(bool isEnter)
     {
         const float _newRigsHeight = 1.5f;
         const float _newRigsRadius = 6.0f;
 
+
+        Debug.Log(isShadowing);
         // 調整攝影機位置
-        if (isShadowing)
-        {
-            animateController.jumpIntoShadow();
+        if (isEnter == true) { 
+
+
+            isShadowing = true;
             ripple.GetComponent<ParticleSystem>().Play();
             freeLookCam.LookAt = transform;
             // freeLookCam.m_Orbits[0] = top
@@ -153,6 +157,7 @@ public class ShadowModule : MonoBehaviour
         }
         else
         {
+            isShadowing = false;
             animateController.jumpOutOfShadow();
             ripple.GetComponent<ParticleSystem>().Stop();
             freeLookCam.LookAt = transform.GetChild(2);
@@ -179,7 +184,7 @@ public class ShadowModule : MonoBehaviour
             isClimbingHor = false;
         }
         // 把所有mesh物件關掉/打開
-        /*for (int i = 0; i < meshs.Count; i++)
+        for (int i = 0; i < meshs.Count; i++)
         {
             if (meshs[i].GetComponent<MeshRenderer>())
             {
@@ -189,7 +194,24 @@ public class ShadowModule : MonoBehaviour
             {
                 meshs[i].GetComponent<SkinnedMeshRenderer>().enabled = !isShadowing;
             }
-        }*/
+        }
+    }
+
+    /// <summary>
+    /// 計時(當跑出shadow外的時候會現形)
+    /// </summary>
+    private void shadowOutCounter()
+    {
+        // 跑出影子外的計時  
+        shadowOutCount += 10;
+    }
+
+    /// <summary>
+    /// 重置 Counter
+    /// </summary>
+    private  void resetShadowOutCounter()
+    {
+        shadowOutCount = 0;
     }
 
     /// <summary>
@@ -215,15 +237,17 @@ public class ShadowModule : MonoBehaviour
 
         rayDetect();
 
-        // 跑出影子外的計時        
-        if (!isInShadow)
+        if (!isInShadow || isInAir)
         {
-            shadowOutCount += 10;
+            shadowOutCounter();
         }
         else
         {
-            shadowOutCount = 0;
+            resetShadowOutCounter();
         }
+       
+
+
         // 移動
         if (inputHor != 0 || inputVer != 0)
         {
@@ -269,24 +293,24 @@ public class ShadowModule : MonoBehaviour
         }
 
         RaycastHit hit;
-        Ray testRay = new Ray(transform.position, -transform.up);
-        if (Physics.Raycast(testRay, out hit, 1f))
+        Ray groundRay = new Ray(transform.position, -transform.up);
+        if (Physics.Raycast(groundRay, out hit, 1f))
         {
+            isInAir = false;
             if (Vector3.Distance(hit.point, transform.position) >= 0.1)
             {
                 transform.position = hit.point;
             }
-
         }
 
         //退出影子條件       
-        if (/*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
+        if (isShadowing && /*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
         {
-
+            Debug.Log("test343");
             shadowOutCount = 0;
-            isShadowing = false;
-            transformToShadow();
+            transformToShadow(false);
             gravity = 20;
+            DelayCount = Time.time;
         }
     }
 
@@ -295,6 +319,7 @@ public class ShadowModule : MonoBehaviour
     /// </summary>
     private void rayDetect()
     {
+        isInAir = true;
 
         Ray rayForward = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), transform.forward);
         Ray rayBack = new Ray(transform.position + new Vector3(0.0f, 0.005f, 0.0f), -transform.forward);
@@ -357,15 +382,11 @@ public class ShadowModule : MonoBehaviour
 
                     }
                     transform.rotation = rot * transform.rotation;
-                    
-                    transform.position = hit.point;
-                    Debug.Log("hitPos = " + hit.point);
-                    Debug.Log("transformPos = " + transform.position);
-
                 }
             }
+            isInAir = false;
         }
-        
+
         startPos = transform.position + transform.forward / 10 + transform.up / 30;
         endPos = transform.position + transform.forward / 3 - transform.up / 10;
         Ray RBTD = new Ray(startPos, endPos - startPos);
@@ -405,6 +426,7 @@ public class ShadowModule : MonoBehaviour
                     transform.rotation = rot * transform.rotation;
                 }
             }
+            isInAir = false;
         }
         // 偵側牆壁 右方
         startPos = transform.position - transform.right / 10 + transform.up / 30;
@@ -444,7 +466,8 @@ public class ShadowModule : MonoBehaviour
                     }
                     transform.rotation = rot * transform.rotation;
                 }
-            }        
+            }
+            isInAir = false;
         }
         // 偵側牆壁 左方
         startPos = transform.position + transform.right / 10 + transform.up / 30;
@@ -485,6 +508,7 @@ public class ShadowModule : MonoBehaviour
                     transform.rotation = rot * transform.rotation;
                 }
             }
+            isInAir = false;
         }
         
 
