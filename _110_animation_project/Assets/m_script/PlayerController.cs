@@ -129,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
 
         /**********潛入影子*********/
-        if (charController.isGrounded && shadowModule.IsInShadow && !isPushingObject)
+        if (charController.isGrounded && shadowModule.IsInShadow && !pushModule.IsPushingObject)
         {
             if (Input.GetKeyDown(KeyCode.E) && !shadowModule.IsShadowing)
             {
