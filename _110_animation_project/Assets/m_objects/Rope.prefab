@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7887298719568734612}
   - component: {fileID: 7887298719568734613}
   - component: {fileID: 7887298719568734618}
-  m_Layer: 2
+  m_Layer: 0
   m_Name: Rope
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
-  m_Radius: 2.5
+  m_Radius: 3
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}

@@ -416,7 +416,7 @@ public class PlayerController : MonoBehaviour
                 float targetDis = Vector3.Distance(this.transform.position, allShootingTargetArray[i].transform.position);
                 if (targetDis <= 25)
                 {
-                    if (screenPos.x >= 400 && screenPos.x <= 700 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
+                    if (screenPos.x >= 350 && screenPos.x <= 750 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
                     {
                         shootingTarget = allShootingTargetArray[i];
                         lastTargetDistance = targetDis;
