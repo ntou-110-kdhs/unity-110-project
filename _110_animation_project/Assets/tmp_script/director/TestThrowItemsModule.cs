@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Cinemachine;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,51 +13,72 @@ public class TestThrowItemsModule : MonoBehaviour
 
     //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
+    // 丟出去的速度
+    [SerializeField] private float throwingSpeed = 0.0f;
 
+    // 要丟的物品
     [SerializeField] private GameObject throwedItem;
-
+    // 要丟物品的位置
+    [SerializeField] private Transform throwedItemPos;
+    // 要丟的物品的剛體
     private Rigidbody throwedItemRb;
 
-    private Camera WorldToScreenPoint = null;
+    
+    //main camera
+    [SerializeField] private Camera mainCam = null;
+    //人物身上的freeLookCam攝影機
+    [SerializeField] private CinemachineFreeLook freeLookCam;
+    
 
-    private float angleX = 0;
-    private float angleY = 0;
+    // 攝影機方向
+    Vector3 camFor = Vector3.zero;
+
+    // 是否瞄準中
+    private bool isTakingAim = false;
+    public bool IsTakingAim { get { return isTakingAim; } set { isTakingAim = value; } }
 
     void Start()
     {
+        mainCam = Camera.main;
         throwedItemRb = throwedItem.GetComponent<Rigidbody>();
     }
 
     void Update()
+    {        
+        takingAim();
+        throwing();
+    }
+      
+    /// <summary>
+    /// 瞄準
+    /// </summary>
+    private void takingAim()
     {
-        //滑鼠水平(X軸)移動
-        float mouseX = Input.GetAxis("Mouse X");
-        //滑鼠垂直(Y軸)移動
-        float mouseY = Input.GetAxis("Mouse Y");
-
-        angleX += mouseX * 5;
-        angleY += mouseY * 5;
-
-        Vector3 dir = transform.forward;
-        Vector3 euler = new Vector3(0, angleX, angleY);
-
-        dir = Rotate(dir, euler);
-
-        Ray ray = new Ray(transform.position, dir);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
-
-
-
+        // 按 T 瞄準
         if (Input.GetKeyDown(KeyCode.T))
         {
-            throwedItem.transform.position = transform.position + Vector3.up * 3;
-            throwedItemRb.velocity = dir * 20;
+            isTakingAim = true;
+            camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+            camFor.y = 0;
+            transform.forward = camFor;
+
         }
     }
 
-    public Vector3 Rotate(Vector3 source, Vector3 rotate)
+
+    private void throwing()
     {
-        Quaternion q = Quaternion.Euler(rotate);
-        return q * source;
+        
+        if (isTakingAim && Input.GetMouseButton(0))
+        {
+            Vector3 dir = transform.forward;
+
+            isTakingAim = false;
+            
+            camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
+            throwedItem.transform.position = throwedItemPos.position;
+            dir = camFor.normalized;
+            throwedItemRb.velocity = dir * throwingSpeed;
+        }
     }
 }

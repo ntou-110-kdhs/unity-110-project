@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18386891, g: 0.2290173, b: 0.30311158, a: 1}
+  m_IndirectSpecularColor: {r: 0.1838687, g: 0.22901699, b: 0.3031111, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1387,7 +1387,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 704808623}
-  m_LocalRotation: {x: -0.69897306, y: 0.10694256, z: -0.69897306, w: -0.106942326}
+  m_LocalRotation: {x: -0.69897306, y: 0.10694255, z: -0.69897306, w: -0.10694232}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -2557,6 +2557,36 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1625543226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1625543227}
+  m_Layer: 0
+  m_Name: ThrowedItemPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1625543227
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1625543226}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.121, y: -0.041, z: -0.009}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1835726491}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1814381033
 GameObject:
   m_ObjectHideFlags: 0
@@ -3551,7 +3581,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a299296c9b69c9489da248d972825de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ThrowedItem: {fileID: 2004099997}
+  throwingSpeed: 20
+  throwedItem: {fileID: 2004099997}
+  throwedItemPos: {fileID: 1625543227}
+  mainCam: {fileID: 726703994}
+  freeLookCam: {fileID: 1553224440}
 --- !u!1 &1873764225
 GameObject:
   m_ObjectHideFlags: 0
@@ -3894,6 +3928,7 @@ GameObject:
   - component: {fileID: 2004100000}
   - component: {fileID: 2004099999}
   - component: {fileID: 2004099998}
+  - component: {fileID: 2004100002}
   m_Layer: 0
   m_Name: Stone
   m_TagString: Untagged
@@ -3974,6 +4009,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &2004100002
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2004099997}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &2072073270
 PrefabInstance:
   m_ObjectHideFlags: 0
