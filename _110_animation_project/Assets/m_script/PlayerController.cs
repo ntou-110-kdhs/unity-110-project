@@ -68,6 +68,7 @@ public class PlayerController : MonoBehaviour
 
     private ShadowModule shadowModule;
     private Push_Module pushModule;
+    private ThrowItemsModule throwModule;
 
     // Start is called before the first frame update
     void Start()
@@ -82,6 +83,9 @@ public class PlayerController : MonoBehaviour
 
         //推移物件初始化
         pushModule = GetComponent<Push_Module>();
+
+        //丟東西模組
+        throwModule = GetComponent<ThrowItemsModule>();
 
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
@@ -129,7 +133,7 @@ public class PlayerController : MonoBehaviour
 
 
         /**********潛入影子*********/
-        if (charController.isGrounded && shadowModule.IsInShadow && !pushModule.IsPushingObject)
+        if (charController.isGrounded && shadowModule.IsInShadow && !pushModule.IsPushingObject && !throwModule.IsTakingAim)
         {
             if (Input.GetKeyDown(KeyCode.E) && !shadowModule.IsShadowing)
             {
@@ -175,6 +179,10 @@ public class PlayerController : MonoBehaviour
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
             pushingObjectAnimation();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             pushModule.dragMove();
+        }
+        else if (throwModule.IsTakingAim)
+        {
+
         }
         else
         {
@@ -458,5 +466,5 @@ public class PlayerController : MonoBehaviour
         animateController.pushingObject();
     }
     /**********推移物品*********/
-    
+
 }
