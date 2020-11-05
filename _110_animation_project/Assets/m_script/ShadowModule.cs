@@ -127,7 +127,7 @@ public class ShadowModule : MonoBehaviour
         const float _newRigsRadius = 6.0f;
 
 
-        Debug.Log(isShadowing);
+
         // 調整攝影機位置
         if (isEnter == true) { 
 
@@ -306,7 +306,7 @@ public class ShadowModule : MonoBehaviour
         //退出影子條件       
         if (isShadowing && /*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
         {
-            Debug.Log("test343");
+
             shadowOutCount = 0;
             transformToShadow(false);
             gravity = 20;

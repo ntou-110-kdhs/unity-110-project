@@ -68,7 +68,7 @@ public class TestPlayerController : MonoBehaviour
 
     private ShadowModule shadowModule;
     private Push_Module pushModule;
-    private TestThrowItemsModule throwModule;
+    private ThrowItemsModule throwModule;
 
     // Start is called before the first frame update
     void Start()
@@ -85,7 +85,7 @@ public class TestPlayerController : MonoBehaviour
         pushModule = GetComponent<Push_Module>();
 
         //丟東西模組
-        throwModule = GetComponent<TestThrowItemsModule>();
+        throwModule = GetComponent<ThrowItemsModule>();
 
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
