@@ -17,7 +17,9 @@ public class ThrowItemsModule : MonoBehaviour
     [SerializeField] private float throwingSpeed = 0.0f;
 
     // 要丟的物品
-    [SerializeField] private GameObject throwedItem;
+    [SerializeField] private List<GameObject> throwedItems;
+
+    private int throwIndex = 0;
     // 要丟物品的位置
     [SerializeField] private Transform throwedItemPos;
 
@@ -41,7 +43,8 @@ public class ThrowItemsModule : MonoBehaviour
     }
 
     void Update()
-    {        
+    {
+        changeIndex();
         takingAim();
         throwing();
     }
@@ -62,7 +65,18 @@ public class ThrowItemsModule : MonoBehaviour
         }
     }
 
-
+    private void changeIndex()
+    {
+        // 按 Q 切換
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            throwIndex++;
+            throwIndex = throwIndex % 3;
+        }
+    }
+    /// <summary>
+    /// 丟東西
+    /// </summary>
     private void throwing()
     {
         camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
@@ -72,7 +86,7 @@ public class ThrowItemsModule : MonoBehaviour
             {
                 Vector3 dir = transform.forward;
                 isTakingAim = false;
-                GameObject prefab = Instantiate(throwedItem);
+                GameObject prefab = Instantiate(throwedItems[throwIndex]);
                 prefab.transform.position = throwedItemPos.position;                
                 dir = camFor.normalized;
                 prefab.GetComponent<Rigidbody>().velocity = dir * throwingSpeed;

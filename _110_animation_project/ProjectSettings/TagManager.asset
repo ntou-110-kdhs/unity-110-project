@@ -9,6 +9,7 @@ TagManager:
   - Movable
   - Rope_Tied_Object
   - Crossbow_Target
+  - Fire
   layers:
   - Default
   - TransparentFX

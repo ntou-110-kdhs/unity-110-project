@@ -179,12 +179,12 @@ public class TestPlayerController : MonoBehaviour
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
             pushingObjectAnimation();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             pushModule.dragMove();
-        }    
+        }
         else if (throwModule.IsTakingAim)
         {
 
         }
-        else 
+        else
         {
             //移動模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
@@ -424,7 +424,7 @@ public class TestPlayerController : MonoBehaviour
                 float targetDis = Vector3.Distance(this.transform.position, allShootingTargetArray[i].transform.position);
                 if (targetDis <= 25)
                 {
-                    if (screenPos.x >= 400 && screenPos.x <= 700 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
+                    if (screenPos.x >= 350 && screenPos.x <= 750 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
                     {
                         shootingTarget = allShootingTargetArray[i];
                         lastTargetDistance = targetDis;
