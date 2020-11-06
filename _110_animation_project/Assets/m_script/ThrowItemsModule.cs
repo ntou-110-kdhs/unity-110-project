@@ -28,7 +28,9 @@ public class ThrowItemsModule : MonoBehaviour
     [SerializeField] private Camera mainCam = null;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
-    
+
+    //人物的animateController
+    private PlayerAnimateController animateController;
 
     // 攝影機方向
     Vector3 camFor = Vector3.zero;
@@ -39,7 +41,10 @@ public class ThrowItemsModule : MonoBehaviour
 
     void Start()
     {
-        mainCam = Camera.main;        
+        mainCam = Camera.main;
+
+        //取得animateController
+        animateController = GetComponent<PlayerAnimateController>();
     }
 
     void Update()
@@ -57,6 +62,9 @@ public class ThrowItemsModule : MonoBehaviour
         // 按 T 瞄準
         if (Input.GetKeyDown(KeyCode.T))
         {
+            //呼叫動畫控制器 開始瞄準動畫
+            animateController.throwingObjectTrigger();
+
             isTakingAim = true;
             camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
             camFor.y = 0;
@@ -64,6 +72,32 @@ public class ThrowItemsModule : MonoBehaviour
 
         }
     }
+
+    /// <summary>
+    /// 當動畫撥放到要丟出物品時呼叫
+    /// </summary>
+    private void throwItemOut()
+    {
+        Vector3 dir = transform.forward;
+        //isTakingAim = false;
+        GameObject prefab = Instantiate(throwedItems[throwIndex]);
+        prefab.transform.position = throwedItemPos.position;
+        dir = camFor.normalized;
+        prefab.GetComponent<Rigidbody>().velocity = dir * throwingSpeed;
+    }
+
+    /// <summary>
+    /// 物品投擲結束(動畫中呼叫) isTakingAim重設
+    /// </summary>
+    private void throwItemOutFinished()
+    {
+        isTakingAim = false;
+
+        //結束時呼叫 取消TRIGGER
+        animateController.resetAllTrigger();
+    }
+
+
 
     private void changeIndex()
     {
@@ -84,12 +118,20 @@ public class ThrowItemsModule : MonoBehaviour
         {
             if (Input.GetMouseButton(0))
             {
+                //呼叫動畫控制器 開始投擲動畫
+                animateController.throwingObject();
+
+
+                /*點擊後的功能放到throwItemOut() 中  好讓動畫撥到一定程度後呼叫
+                 * isTakingAim 重設部分  放到 throwItemOutFinished()中  好讓動畫撥完後呼叫
+                 * 
                 Vector3 dir = transform.forward;
                 isTakingAim = false;
                 GameObject prefab = Instantiate(throwedItems[throwIndex]);
                 prefab.transform.position = throwedItemPos.position;                
                 dir = camFor.normalized;
                 prefab.GetComponent<Rigidbody>().velocity = dir * throwingSpeed;
+                */
             }
             else if (Input.GetKeyDown(KeyCode.T))
             {

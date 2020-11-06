@@ -144,7 +144,7 @@ public class PlayerController : MonoBehaviour
 
 
         /**********繩索射出*********/
-        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false)
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false && !throwModule.IsTakingAim)
         {
             rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
             Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);

@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerAnimateController : MonoBehaviour
 {
     Animator animator;              //設置空的ANIMATOR變數
+    private ThrowItemsModule throwModule;   //丟東西模組
     public float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
@@ -18,6 +19,8 @@ public class PlayerAnimateController : MonoBehaviour
     private void Start()
     {
         animator=GetComponent<Animator>();      //指定此物件的ANIMATOR
+        //丟東西模組
+        throwModule = GetComponent<ThrowItemsModule>();
     }
 
     /***********影子動畫***********/
@@ -104,7 +107,23 @@ public class PlayerAnimateController : MonoBehaviour
     }
     /**********繩索射出*********/
 
+    /***********投擲動畫***********/
+    //投擲物品模組 throwingObjectTrigger() => throwingObject()
 
+    public void throwingObject()                         //玩家點擊投擲時(瞄準後點擊左鍵)
+    {
+        resetAllTrigger();
+        animator.SetBool("throw_item_aiming", false);
+        animator.SetTrigger("throw_item");
+    }
+
+
+    public void throwingObjectTrigger()                         //玩家點擊瞄準時(點擊T)
+    {
+        resetAllTrigger();
+        animator.SetTrigger("throw_item_start");
+    }
+    /***********投擲動畫***********/
 
 
     public void attackStart()                           //攻擊動畫開始   能開始傷害NPC
@@ -124,6 +143,8 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("walking");
         animator.ResetTrigger("Attacking");
         animator.ResetTrigger("jump");
+        animator.ResetTrigger("throw_item");
+        //animator.ResetTrigger("throw_item_start");
     }
 
 
@@ -153,6 +174,10 @@ public class PlayerAnimateController : MonoBehaviour
         }
         
         */
+
+        //每貞都會RESET投擲物品TRIGGER  避免BUG
+        animator.ResetTrigger("throw_item_start");
+
 
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))       //移動ANIMATION
         {
@@ -258,14 +283,23 @@ public class PlayerAnimateController : MonoBehaviour
 
 
 
-        if (Input.GetMouseButton(0))        //左鍵 攻擊
+        if (Input.GetMouseButton(0))        //左鍵 TRIGGER
         {
-            animator.SetTrigger("Attacking");
+            if (throwModule.IsTakingAim)
+            {
+                animator.SetTrigger("throw_item");
+            }
+            else
+            {
+                animator.SetTrigger("Attacking");
+            }
+            
         }
 
         else
         {
             animator.ResetTrigger("Attacking");
+            animator.ResetTrigger("throw_item");
         }
 
         if (Input.GetKey(KeyCode.Space))    //空白建 跳躍

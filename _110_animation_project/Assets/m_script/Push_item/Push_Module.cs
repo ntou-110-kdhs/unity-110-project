@@ -10,6 +10,7 @@ public class Push_Module : MonoBehaviour
     private PlayerController playerController;
     private CharacterController charController;
     private ShadowModule shadowModule;
+    private ThrowItemsModule throwModule;
 
     //人物的animateController
     private PlayerAnimateController animateController;
@@ -62,6 +63,9 @@ public class Push_Module : MonoBehaviour
         if (charController == null) Debug.LogError("character Controller is not attatched");
         shadowModule = GetComponent<ShadowModule>();
         if (charController == null) Debug.LogError("Shadow Module is not attatched");
+
+        //丟東西模組
+        throwModule = GetComponent<ThrowItemsModule>();
         if (freeLookCam == null)
         {
             freeLookCam = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
@@ -86,7 +90,7 @@ public class Push_Module : MonoBehaviour
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
-                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !shadowModule.IsShadowing && !playerController.IsAbleToShoot)
+                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !shadowModule.IsShadowing && !playerController.IsAbleToShoot && !throwModule.IsTakingAim)
                 {
                     //更改角色的面向  以及位置
                     //為此  必須先關閉角色控制器
@@ -113,7 +117,7 @@ public class Push_Module : MonoBehaviour
                     isPushingObject = true;
 
                 }
-                else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !shadowModule.IsShadowing)   //再次點擊 取消
+                else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !shadowModule.IsShadowing && !throwModule.IsTakingAim)   //再次點擊 取消
                 {
                     if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
                     pushedObject = null;

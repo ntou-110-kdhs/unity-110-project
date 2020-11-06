@@ -60,6 +60,7 @@ public class M_TestPlayerController : MonoBehaviour
 
     private ShadowModule shadowModule;
     private Push_Module pushModule;
+    private ThrowItemsModule throwModule;
 
     // Start is called before the first frame update
     void Start()
@@ -74,6 +75,9 @@ public class M_TestPlayerController : MonoBehaviour
 
         //推移物件初始化
         pushModule = GetComponent<Push_Module>();
+
+        //丟東西模組
+        throwModule = GetComponent<ThrowItemsModule>();
 
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
@@ -121,7 +125,7 @@ public class M_TestPlayerController : MonoBehaviour
 
 
         /**********潛入影子*********/
-        if (charController.isGrounded && shadowModule.IsInShadow && !pushModule.IsPushingObject)
+        if (charController.isGrounded && shadowModule.IsInShadow && !pushModule.IsPushingObject && !throwModule.IsTakingAim)
         {
             if (Input.GetKeyDown(KeyCode.E) && !shadowModule.IsShadowing)
             {
@@ -132,7 +136,7 @@ public class M_TestPlayerController : MonoBehaviour
 
 
         /**********繩索射出*********/
-        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false)
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false && !throwModule.IsTakingAim)
         {
             rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
             Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);
@@ -167,6 +171,10 @@ public class M_TestPlayerController : MonoBehaviour
             freeLookCam.m_RecenterToTargetHeading.m_enabled = false;
             pushingObjectAnimation();                                              //呼叫此函式  更改ANIMATION中的BOOL值
             pushModule.dragMove();
+        }
+        else if (throwModule.IsTakingAim)
+        {
+
         }
         else
         {
