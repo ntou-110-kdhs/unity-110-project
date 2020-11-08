@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
     private bool isAbleToShoot = false;
     public bool IsAbleToShoot { get { return isAbleToShoot; } set { isAbleToShoot = value; } }    //角色是否可以進行射箭    ableToShoot() 進行調整
     private bool isShooting = false;        //角色是否正在射擊      避免同時射擊多個目標
+    public bool IsShooting { get { return isShooting; } set { isShooting = value; } }
     /**********繩索射出*********/
 
     /**********物理性質*********/
@@ -144,7 +145,7 @@ public class PlayerController : MonoBehaviour
 
 
         /**********繩索射出*********/
-        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false && !throwModule.IsTakingAim)
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && IsShooting == false && !throwModule.IsTakingAim)
         {
             rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
             Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);
@@ -348,7 +349,7 @@ public class PlayerController : MonoBehaviour
         tiedObjectInRange.GetComponent<Rope_Tied_Object>().getLineRendererPoints(ropeDrawLine.ropeTiedToObject());
         lastTargetDistance = 0;
         tempShootTarget = null;
-        isShooting = false;
+        IsShooting = false;
         charController.enabled = true;
     }
 
@@ -391,7 +392,7 @@ public class PlayerController : MonoBehaviour
     //計算十字弓與目標的角度  並傳遞
     public void crossBowShoot()
     {
-        isShooting = true;
+        IsShooting = true;
         float distanceBetweenTarget = 0;
         float y = 0;
         charController.enabled = false;

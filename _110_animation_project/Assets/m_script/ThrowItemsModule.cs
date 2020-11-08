@@ -13,6 +13,13 @@ public class ThrowItemsModule : MonoBehaviour
 
     //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
+    //components
+    private PlayerController playerController;
+    private CharacterController charController;
+    private ShadowModule shadowModule;
+    private Push_Module pushModule;
+
+
     // 丟出去的速度
     [SerializeField] private float throwingSpeed = 0.0f;
 
@@ -41,6 +48,16 @@ public class ThrowItemsModule : MonoBehaviour
 
     void Start()
     {
+        //獲取component
+        playerController = this.GetComponent<PlayerController>();
+        if (playerController == null) Debug.LogError("player Controller is not attatched");
+        charController = this.GetComponent<CharacterController>();
+        if (charController == null) Debug.LogError("character Controller is not attatched");
+        shadowModule = GetComponent<ShadowModule>();
+        if (shadowModule == null) Debug.LogError("Shadow Module is not attatched");
+        pushModule = GetComponent<Push_Module>();
+
+
         mainCam = Camera.main;
 
         //取得animateController
@@ -60,7 +77,7 @@ public class ThrowItemsModule : MonoBehaviour
     private void takingAim()
     {
         // 按 T 瞄準
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(KeyCode.T) && charController.isGrounded && !pushModule.IsPushingObject && !shadowModule.IsShadowing && !playerController.IsShooting && !playerController.IsShooting && !this.IsTakingAim)
         {
             //呼叫動畫控制器 開始瞄準動畫
             animateController.throwingObjectTrigger();

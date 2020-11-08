@@ -62,7 +62,7 @@ public class Push_Module : MonoBehaviour
         charController = this.GetComponent<CharacterController>();
         if (charController == null) Debug.LogError("character Controller is not attatched");
         shadowModule = GetComponent<ShadowModule>();
-        if (charController == null) Debug.LogError("Shadow Module is not attatched");
+        if (shadowModule == null) Debug.LogError("Shadow Module is not attatched");
 
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
@@ -85,12 +85,12 @@ public class Push_Module : MonoBehaviour
 
 
         /**********推移物品*********/
-        if (Physics.Raycast(rayObject, out hit, 1.5f))
+        if (Physics.Raycast(rayObject, out hit, 1.75f))
         {
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
-                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == false && !shadowModule.IsShadowing && !playerController.IsAbleToShoot && !throwModule.IsTakingAim)
+                if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && !shadowModule.IsShadowing && !playerController.IsShooting && !throwModule.IsTakingAim)
                 {
                     //更改角色的面向  以及位置
                     //為此  必須先關閉角色控制器

@@ -176,7 +176,7 @@ public class PlayerAnimateController : MonoBehaviour
         */
 
         //每貞都會RESET投擲物品TRIGGER  避免BUG
-        animator.ResetTrigger("throw_item_start");
+        //animator.ResetTrigger("throw_item_start");
 
 
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))       //移動ANIMATION
