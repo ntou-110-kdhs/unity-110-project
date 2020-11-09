@@ -115,7 +115,6 @@ public class ShadowModule : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
 
     /// <summary>
@@ -694,6 +693,27 @@ public class ShadowModule : MonoBehaviour
             lightsWithShadows.Add(light.gameObject, null);
         }
     }
+    /// <summary>
+    /// 新增 光源進 lights 陣列裡面
+    /// </summary>
+    /// <param name="lightObject"> 要新增的光源物件 </param>
+    public void addNewLightToLights(GameObject lightObject)
+    {
+        lights.Add(lightObject);
+        lightsWithShadows.Add(lightObject, null);
+    }
+
+
+    /// <summary>
+    /// 刪除 lights 的指定物件
+    /// </summary>
+    /// <param name="lightObject"> 要刪除的光源物件</param>
+    public void deleteLightsObject(GameObject lightObject)
+    {
+        lights.Remove(lightObject);                
+        lightsWithShadows.Remove(lightObject);
+    }
+
     /// <summary>
     /// 印出你在哪個影子內
     /// </summary>

@@ -22,6 +22,8 @@ public class Pot : MonoBehaviour
     [SerializeField] private GameObject firePartical = null;
     // 煙
     [SerializeField] private GameObject smokePartical = null;
+    // 影子模組
+    private ShadowModule shadowModule = null;
 
 
     // Start is called before the first frame update
@@ -39,18 +41,26 @@ public class Pot : MonoBehaviour
     
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Collision = " + collision.gameObject.name);
-        if(type == "fire")
+        
+
+        if (type == "fire")
         {
             Vector3 firePosition = transform.position;
             firePosition.y -= 0.5f;
-            GameObject prefab = Instantiate(firePartical, firePosition, firePartical.transform.rotation);            
+
+            // 火焰
+            GameObject prefab = Instantiate(firePartical, firePosition, firePartical.transform.rotation);
+            // 火焰的光源
+            Light lightObject = prefab.GetComponentInChildren<Light>();
+            // 新增火焰的光源至shadowModule，以便追蹤
+            shadowModule.addNewLightToLights(lightObject.gameObject);
             Destroy(gameObject);
         }
         else if(type == "water")
         {
             Destroy(gameObject);
         }                        
+        
     }
 
 
@@ -61,13 +71,30 @@ public class Pot : MonoBehaviour
         {
             if (collider.gameObject.tag == "Fire")
             {
+                // 產生煙
                 GameObject prefab = Instantiate(smokePartical, transform.position, smokePartical.transform.rotation);
+
+                // 碰撞火焰的物件
+                Light lightObject = collider.gameObject.GetComponentInChildren<Light>();
+                // 刪除光源
+                shadowModule.deleteLightsObject(lightObject.gameObject);
+
+
                 Destroy(collider.gameObject);
                 Destroy(gameObject);
             }            
         }
 
         
+    }
+
+    /// <summary>
+    /// 設 shadow module
+    /// </summary>
+    /// <param name="module"> shadow module </param>
+    public void setShadowModule(ShadowModule module)
+    {
+        shadowModule = module;
     }
 
 
