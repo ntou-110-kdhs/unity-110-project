@@ -14,7 +14,7 @@ public class ThrowItemsModule : MonoBehaviour
     //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
     //components
-    private TestPlayerController playerController;
+    private PlayerController playerController;
     private CharacterController charController;
     private ShadowModule shadowModule;
     private Push_Module pushModule;
@@ -54,7 +54,7 @@ public class ThrowItemsModule : MonoBehaviour
     void Start()
     {
         //獲取component
-        playerController = this.GetComponent<TestPlayerController>();
+        playerController = this.GetComponent<PlayerController>();
         if (playerController == null) Debug.LogError("player Controller is not attatched");
         charController = this.GetComponent<CharacterController>();
         if (charController == null) Debug.LogError("character Controller is not attatched");
@@ -138,7 +138,7 @@ public class ThrowItemsModule : MonoBehaviour
         isTakingAim = false;
 
 
-        resetCamera();
+        //resetCamera();
         //結束時呼叫 取消TRIGGER
         animateController.resetAllTrigger();
     }
@@ -184,9 +184,25 @@ public class ThrowItemsModule : MonoBehaviour
     private void throwing()
     {
         camFor = freeLookCam.LookAt.position - freeLookCam.transform.position;
-        if (isTakingAim)
+        
+        if(isResetCam)
         {
+            // 攝影機歸位
+            Vector3 smoothPos = Vector3.zero;
+
+
+
+            headPosition.localPosition = Vector3.Lerp(headPosition.localPosition, new Vector3(0.0f, 1.56f, 0.0f), Time.deltaTime * 5);
             
+
+            freeLookCam.m_Orbits[0].m_Height = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Height, 4.0f, Time.deltaTime);
+            freeLookCam.m_Orbits[0].m_Radius = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Radius, 1.75f, Time.deltaTime);
+            freeLookCam.m_Orbits[1].m_Height = Mathf.Lerp(freeLookCam.m_Orbits[1].m_Height, 2.5f, Time.deltaTime);
+            freeLookCam.m_Orbits[1].m_Radius = Mathf.Lerp(freeLookCam.m_Orbits[1].m_Radius, 3.0f, Time.deltaTime);
+        }
+        else if (isTakingAim)
+        {
+
             headPosition.localPosition = new Vector3(0.415f, 1.666f, -0.465f);
             freeLookCam.m_Orbits[0].m_Height = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Height, 2, Time.deltaTime * 5);
             freeLookCam.m_Orbits[0].m_Radius = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Radius, 1, Time.deltaTime * 5);
@@ -209,22 +225,6 @@ public class ThrowItemsModule : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f/*每一frame轉向 5.0 度*/);
             }
         }
-        else if(isResetCam)
-        {
-            // 攝影機歸位
-            Vector3 smoothPos = Vector3.zero;
-
-
-
-            headPosition.localPosition = Vector3.Lerp(headPosition.localPosition, new Vector3(0.0f, 1.56f, 0.0f), Time.deltaTime * 5);
-            
-
-            freeLookCam.m_Orbits[0].m_Height = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Height, 4.0f, Time.deltaTime);
-            freeLookCam.m_Orbits[0].m_Radius = Mathf.Lerp(freeLookCam.m_Orbits[0].m_Radius, 1.75f, Time.deltaTime);
-            freeLookCam.m_Orbits[1].m_Height = Mathf.Lerp(freeLookCam.m_Orbits[1].m_Height, 2.5f, Time.deltaTime);
-            freeLookCam.m_Orbits[1].m_Radius = Mathf.Lerp(freeLookCam.m_Orbits[1].m_Radius, 3.0f, Time.deltaTime);
-        }
-        
 
 
     }
