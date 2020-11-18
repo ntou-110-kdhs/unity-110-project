@@ -7,6 +7,7 @@ using Cinemachine;
 public class FindRoadController : MonoBehaviour
 {
     [SerializeField] private Transform target;//target to follow
+    [SerializeField] private Transform checkTarget;//target to follow
     [SerializeField] private NavMeshAgent agent;
     //private Ray rayToTarget;
     private RaycastHit hitInfo;
@@ -24,13 +25,14 @@ public class FindRoadController : MonoBehaviour
 
     //private Animator thisAnimator;          //自身动画组件
     private int Animate_timeLen = 3;            //模擬動畫播放時間
-    private Vector3 initialPosition;            //初始位置
+    [SerializeField] private Vector3 initialPosition;      //初始位置
     //private Vector3 moveDirection = Vector3.zero;
     //[SerializeField] private float gravity = 20.0f;
     
     [Header("狀態反映範圍")]
     [SerializeField] private float wanderRadius = 5f;          //游走半径，移动状态下，如果超出游走半径会返回出生位置
     [SerializeField] private float defendRadius = 6f;          //自卫半径，玩家进入后怪物会追击玩家，当距离<攻击距离则会发动攻击（或者触发战斗）
+    [SerializeField] private float checkRadius = 7f;         //警戒半径，玩家进入后怪物会发出警告，并一直面朝玩家
     [SerializeField] private float alertRadius = 8f;         //警戒半径，玩家进入后怪物会发出警告，并一直面朝玩家
     [SerializeField] private float chaseRadius = 10f;            //追击半径，当怪物超出追击半径后会放弃追击，返回追击起始位置
 
@@ -76,7 +78,8 @@ public class FindRoadController : MonoBehaviour
     private float diatanceToInitial;         //怪物与初始位置的距离
     private Quaternion targetRotation;         //怪物的目标朝向
 
-    private bool is_Warned = false;
+    private bool is_Checking = false;
+    private bool is_Warned = false;    
     private bool is_Running = false;
     private bool is_Chased = false;
 
@@ -100,10 +103,14 @@ public class FindRoadController : MonoBehaviour
         if (agentRoadSet == null)
         {
             agentRoadSet = GameObject.Find("agentRoadPoint");
-            agentRoadSubSet = agentRoadSet.transform.Find(gameObject.name);
-            if(agentRoadSubSet!=null)
-                pointSetSize = agentRoadSubSet.transform.childCount;
-        } 
+            agentRoadSubSet = agentRoadSet.transform.Find(gameObject.name);            
+        }
+
+        if (agentRoadSubSet != null)
+        {
+            pointSetSize = agentRoadSubSet.transform.childCount;
+        }
+            
         setPoints = new Transform[pointSetSize];
         for (int i = 0; i < pointSetSize; i++) 
         {
@@ -123,39 +130,13 @@ public class FindRoadController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (target != null && currentState != MonsterState.STAND)
+        MonsterStateLoop(); 
+        /*if (target != null && currentState != MonsterState.STAND)
         {
-            MonsterStateLoop();
+           
             //FaceTarget();
-        }
-        else if(pointSetSize > 0)
-        {
-            if (!isSetPoint)
-            {
-                if (tmpXYZ == null) tmpXYZ = new Vector3(setPoints[nextPoint].position.x, setPoints[nextPoint].position.y, setPoints[nextPoint].position.z);
-                else
-                {
-                    tmpXYZ.x = setPoints[nextPoint].position.x;
-                    tmpXYZ.y = setPoints[nextPoint].position.y;
-                    tmpXYZ.z = setPoints[nextPoint].position.z;
-                }
-                isSetPoint = true;
-            }
-            agent.SetDestination(setPoints[nextPoint].position);
-            if (    transform.position.x == tmpXYZ.x 
-                &&  transform.position.z == tmpXYZ.z 
-                &&  Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
-            {
-                //initialPosition = setPoints[nextPoint].position;
-                Debug.Log("NPC position : " + transform.position);
-                isSetPoint = false;
-                nextPoint++;
-                nextPoint %= pointSetSize;
-                initialPosition = setPoints[nextPoint].position;
-            }
-
-        }
-        EnemyDistanceCheck();
+        }       
+        EnemyDistanceCheck();*/
     }
 
 
@@ -171,7 +152,7 @@ public class FindRoadController : MonoBehaviour
                 {
                     RandomAction();         //随机切换指令
                 }
-
+                StandPatrol();
                 //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
@@ -179,18 +160,28 @@ public class FindRoadController : MonoBehaviour
                 break;
 
             //待机状态，由于观察动画时间较长，并希望动画完整播放，故等待时间是根据一个完整动画的播放长度，而不是指令间隔时间
-            case MonsterState.CHECK:
-                if (Time.time - lastActTime > Animate_timeLen)
-                {
-                    //RandomAction();         //随机切换指令
-                    is_Chased = false;
-                    currentState = MonsterState.RETURN;
-                }
-
+            case MonsterState.CHECK:                
                 //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
+
+                agent.stoppingDistance = 2f;
+
+                agent.speed = walkSpeed;
+
+                
+
+                if (is_Checking)
+                {
+                    targetDirect = checkTarget.transform.position - transform.position;
+                    targetDirect.y = 0.0f;
+                    targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
+                    agent.SetDestination(checkTarget.position);
+                }
+                
+
                 //该状态下的检测指令
-                EnemyDistanceCheck();
+                CheckingCheck();
                 break;
 
             //游走，根据状态随机时生成的目标位置修改朝向，并向前移动
@@ -221,6 +212,9 @@ public class FindRoadController : MonoBehaviour
                 }
                 targetDirect = target.transform.position - transform.position;
                 targetDirect.y = 0.0f;
+
+                agent.stoppingDistance = 2f;
+
                 //持续朝向玩家位置
                 targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
@@ -241,6 +235,8 @@ public class FindRoadController : MonoBehaviour
                 }
                 targetDirect = target.transform.position - transform.position;
                 targetDirect.y = 0.0f;
+
+                agent.stoppingDistance = 2f;
                 //朝向玩家位置
                 targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
@@ -259,7 +255,7 @@ public class FindRoadController : MonoBehaviour
                 //朝向初始位置移动
                 //targetDirect = initialPosition - transform.position;
                 //targetDirect.y = 0.0f;
-
+                agent.stoppingDistance = 0f;
                 agent.speed = walkSpeed;
                 agent.SetDestination(initialPosition);
                 
@@ -271,6 +267,45 @@ public class FindRoadController : MonoBehaviour
                 break;
         }
         alertRateCtl();
+    }
+
+
+    /// <summary>
+    /// 巡邏
+    /// </summary>
+    void StandPatrol()
+    {
+        if (pointSetSize > 0)
+        {
+
+            if (!isSetPoint)
+            {
+                if (tmpXYZ == Vector3.zero)
+                {
+                    tmpXYZ = new Vector3(setPoints[nextPoint].position.x, setPoints[nextPoint].position.y, setPoints[nextPoint].position.z);
+                }
+                else
+                {
+                    tmpXYZ.x = setPoints[nextPoint].position.x;
+                    tmpXYZ.y = setPoints[nextPoint].position.y;
+                    tmpXYZ.z = setPoints[nextPoint].position.z;
+                }
+                isSetPoint = true;
+            }
+            agent.SetDestination(setPoints[nextPoint].position);
+            if (transform.position.x == tmpXYZ.x
+                && transform.position.z == tmpXYZ.z
+                && Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
+            {
+                //initialPosition = setPoints[nextPoint].position;
+                //Debug.Log("NPC position : " + transform.position);
+                isSetPoint = false;
+                nextPoint++;
+                nextPoint %= pointSetSize;
+                initialPosition = setPoints[nextPoint].position;
+            }
+
+        }
     }
 
     /// <summary>
@@ -288,12 +323,12 @@ public class FindRoadController : MonoBehaviour
             //Debug.Log("MonsterState.STAND");//Stand state non-animated
             //thisAnimator.SetTrigger("Stand");
         }
-        else if (actionWeight[0] < number && number <= actionWeight[0] + actionWeight[1])
-        {
-            currentState = MonsterState.CHECK;
+        //else if (actionWeight[0] < number && number <= actionWeight[0] + actionWeight[1])
+        //{
+        //    currentState = MonsterState.CHECK;
             // Debug.Log("MonsterState.CHECK");//Stand state animated
             //thisAnimator.SetTrigger("Check");
-        }
+        //}
         //if (actionWeight[0] + actionWeight[1] < number && number <= actionWeight[0] + actionWeight[1] + actionWeight[2])
         //{
         //    currentState = MonsterState.WALK;
@@ -310,7 +345,7 @@ public class FindRoadController : MonoBehaviour
     void EnemyDistanceCheck()
     {
         diatanceToPlayer = Vector3.Distance(target.transform.position, transform.position);
-        if (!alertAngleWithRaycast() && (currentState == MonsterState.STAND || currentState == MonsterState.CHECK || currentState == MonsterState.RETURN))
+        if ((!alertAngleWithRaycast() && !checkTarget) && (currentState == MonsterState.STAND || currentState == MonsterState.RETURN))
         {
             //currentState = MonsterState.STAND;
             return;
@@ -322,7 +357,7 @@ public class FindRoadController : MonoBehaviour
             //if currentState != MonsterState.CHASE
             currentState = MonsterState.CHASE;
         }
-        else if (diatanceToPlayer < defendRadius || alertRate == 100.0f) 
+        else if (diatanceToPlayer < defendRadius || alertRate == 100.0f)
         {
 
             currentState = MonsterState.CHASE;
@@ -331,8 +366,52 @@ public class FindRoadController : MonoBehaviour
         {
             currentState = MonsterState.WARN;
         }
+        else if (Vector3.Distance(checkTarget.position, transform.position) < checkRadius)
+        {
+            currentState = MonsterState.CHECK;
+            Invoke("StartChecking", 2f);
+        }
     }
 
+    /// <summary>
+    /// start checking
+    /// </summary>
+    void StartChecking()
+    {
+        is_Checking = true;
+    }
+
+    /// <summary>
+    /// Check狀態下的檢測
+    /// </summary>
+    void CheckingCheck()
+    {
+        float distanceToCheckTarget = 0f;
+        if (checkTarget != null)
+        {
+            distanceToCheckTarget = Vector3.Distance(checkTarget.position, transform.position);
+        }
+        
+
+        if(distanceToCheckTarget < 2f)
+        {
+            Debug.Log("Is Checking...");
+            Invoke("CheckFinish", 2);
+        }
+
+    }
+
+    /// <summary>
+    /// 確認完成
+    /// </summary>
+    void CheckFinish()
+    {
+        Debug.Log("Checking Finish!");
+        is_Running = false;
+        is_Checking = false;
+        checkTarget = null;
+        currentState = MonsterState.RETURN;
+    }
     /// <summary>
     /// 警告状态下的检测，用于启动追击及取消警戒状态
     /// </summary>
@@ -420,10 +499,15 @@ public class FindRoadController : MonoBehaviour
     {
         diatanceToInitial = Vector3.Distance(transform.position, initialPosition);
         //如果已经接近初始位置，则随机一个待机状态
-        if (diatanceToInitial < 1f)
+        if (diatanceToInitial < 2f)
         {
             is_Running = false;
-            RandomAction();
+            currentState = MonsterState.STAND;
+        }
+        if(tmpXYZ != Vector3.zero)
+        {
+            isSetPoint = false;
+            tmpXYZ = Vector3.zero;
         }
         //Debug.Log("Return state");
     }
@@ -537,4 +621,16 @@ public class FindRoadController : MonoBehaviour
     //    Gizmos.color = Color.white;
     //    Gizmos.DrawWireSphere(transform.position, chaseRadius);
     //}
+
+    /// <summary>
+    /// 設定 Check 目標物
+    /// </summary>
+    /// <param name="target"> 目標物 </param>
+    public void SetCheckTarget(Transform target)
+    {
+        if(currentState == MonsterState.CHECK || currentState == MonsterState.STAND)
+        {
+            checkTarget = target;
+        }        
+    }
 }

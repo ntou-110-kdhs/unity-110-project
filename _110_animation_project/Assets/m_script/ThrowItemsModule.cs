@@ -18,6 +18,8 @@ public class ThrowItemsModule : MonoBehaviour
     private CharacterController charController;
     private ShadowModule shadowModule;
     private Push_Module pushModule;
+    private EnemyManager enemyManager;
+
 
     // 要丟出去的 "Prefab"
     private GameObject throwPrefab = null;
@@ -61,7 +63,7 @@ public class ThrowItemsModule : MonoBehaviour
         shadowModule = GetComponent<ShadowModule>();
         if (shadowModule == null) Debug.LogError("Shadow Module is not attatched");
         pushModule = GetComponent<Push_Module>();
-
+        enemyManager = FindObjectOfType<EnemyManager>();
 
         mainCam = Camera.main;
 
@@ -120,9 +122,10 @@ public class ThrowItemsModule : MonoBehaviour
         // 設定 parent 
         throwPrefab.transform.parent = null;
         // 設定速度
-        throwPrefab.GetComponent<Rigidbody>().velocity = dir * throwingSpeed;        
+        throwPrefab.GetComponent<Rigidbody>().velocity = dir * throwingSpeed;
+        enemyManager.setAllEnemiesCheckTarget(throwPrefab.transform);
         // 設影子模組  偵測火焰燈光用
-        if(throwPrefab.GetComponent<Pot>() != null)
+        if (throwPrefab.GetComponent<Pot>() != null)
         {
             throwPrefab.GetComponent<Pot>().setShadowModule(shadowModule);
 

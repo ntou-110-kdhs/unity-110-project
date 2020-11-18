@@ -10,6 +10,7 @@ TagManager:
   - Rope_Tied_Object
   - Crossbow_Target
   - Fire
+  - Enemy
   layers:
   - Default
   - TransparentFX
