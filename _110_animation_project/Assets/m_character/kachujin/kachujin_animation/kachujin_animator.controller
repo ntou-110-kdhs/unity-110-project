@@ -1105,11 +1105,14 @@ AnimatorController:
     m_Name: walk_side
     m_StateMachine: {fileID: -4751280862721058424}
     m_Mask: {fileID: 31900000, guid: 95db970e8c4cf834887df35f2ab4d355, type: 2}
-    m_Motions: []
+    m_Motions:
+    - serializedVersion: 2
+      m_State: {fileID: 1102144743487965802}
+      m_Motion: {fileID: 7400000, guid: 7ba09ea7a0b88364198264c897598aff, type: 2}
     m_Behaviours: []
     m_BlendingMode: 0
     m_SyncedLayerIndex: -1
-    m_DefaultWeight: 0
+    m_DefaultWeight: 1
     m_IKPass: 1
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: 9100000}
@@ -1788,7 +1791,7 @@ AnimatorStateMachine:
     m_Position: {x: 684, y: 108, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1102144743487965802}
-    m_Position: {x: 350, y: 280, z: 0}
+    m_Position: {x: 190, y: 270, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 6006010788633486940}
     m_Position: {x: 320, y: -160, z: 0}
@@ -1806,7 +1809,7 @@ AnimatorStateMachine:
     m_Position: {x: 680, y: -30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -3635033620689520141}
-    m_Position: {x: 218.72623, y: 361.00272, z: 0}
+    m_Position: {x: 10, y: 220, z: 0}
   m_ChildStateMachines:
   - serializedVersion: 1
     m_StateMachine: {fileID: 1072969009814766209}
