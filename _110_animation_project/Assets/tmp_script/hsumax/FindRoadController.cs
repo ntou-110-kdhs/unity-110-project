@@ -6,8 +6,8 @@ using Cinemachine;
 [RequireComponent(typeof(NavMeshAgent))]
 public class FindRoadController : MonoBehaviour
 {
-    [SerializeField] private Transform target;//target to follow
-    [SerializeField] private Transform checkTarget;//target to follow
+    private Transform target;//target to follow
+    private Transform checkTarget;//target to follow
     [SerializeField] private NavMeshAgent agent;
     //private Ray rayToTarget;
     private RaycastHit hitInfo;
@@ -61,13 +61,14 @@ public class FindRoadController : MonoBehaviour
         CHASE,      //追击玩家
         RETURN      //超出追击范围后返回
     }
-
+    
     //public enum monsterState
     //{
     //    get { return MonsterState; }
     //}
     [Header("狀態")]
     [SerializeField] private MonsterState currentState = MonsterState.STAND;          //默认状态为原地呼吸
+    [SerializeField] private EnemyIconManager iconManager = null;
     [SerializeField] private float actRestTme;            //更换待机指令的间隔时间
     private float lastActTime;          //最近一次指令时间
 
@@ -83,10 +84,13 @@ public class FindRoadController : MonoBehaviour
     private bool is_Running = false;
     private bool is_Chased = false;
 
+
+
     //GetPointToDo test;
     // Start is called before the first frame update
     void Start()
     {
+        target = GameObject.FindGameObjectWithTag("Player").transform;
         agent = GetComponent<NavMeshAgent>();
 
         //检查并修正怪物设置
@@ -153,6 +157,9 @@ public class FindRoadController : MonoBehaviour
                     RandomAction();         //随机切换指令
                 }
                 StandPatrol();
+
+                iconManager.setIcon(0);
+                iconManager.setIconRate(0);
                 //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
                 //该状态下的检测指令
@@ -166,10 +173,13 @@ public class FindRoadController : MonoBehaviour
 
                 agent.stoppingDistance = 2f;
 
+                // 角色行走速度
                 agent.speed = walkSpeed;
 
-                
+                iconManager.setIcon(1);
+                iconManager.setIconRate(0);
 
+                // 遲疑一下、才決定去確認
                 if (is_Checking)
                 {
                     targetDirect = checkTarget.transform.position - transform.position;
@@ -220,9 +230,14 @@ public class FindRoadController : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
                 //该状态下的检测指令
 
+
+                // 角色行走速度、目標點
                 agent.speed = walkSpeed;
                 agent.SetDestination(target.transform.position);
                 agent.updateRotation = true;
+
+                iconManager.setIcon(2);
+                iconManager.setIconRate(alertRate * 0.01f);
 
                 WarningCheck();
                 break;
@@ -244,7 +259,9 @@ public class FindRoadController : MonoBehaviour
                 //應根據距離來將runspeed降速
                 agent.speed = runSpeed;
                 agent.SetDestination(target.transform.position);
-                
+
+                iconManager.setIcon(3);
+                iconManager.setIconRate(0);
 
                 //该状态下的检测指令
                 ChaseRadiusCheck();
@@ -258,7 +275,10 @@ public class FindRoadController : MonoBehaviour
                 agent.stoppingDistance = 0f;
                 agent.speed = walkSpeed;
                 agent.SetDestination(initialPosition);
-                
+
+                iconManager.setIcon(0);
+                iconManager.setIconRate(0);
+
                 //targetRotation = Quaternion.LookRotation(targetDirect, Vector3.up);
                 //transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
                 //该状态下的检测指令
@@ -366,7 +386,7 @@ public class FindRoadController : MonoBehaviour
         {
             currentState = MonsterState.WARN;
         }
-        else if (Vector3.Distance(checkTarget.position, transform.position) < checkRadius)
+        else if (checkTarget != null && Vector3.Distance(checkTarget.position, transform.position) < checkRadius)
         {
             currentState = MonsterState.CHECK;
             Invoke("StartChecking", 2f);
@@ -411,6 +431,7 @@ public class FindRoadController : MonoBehaviour
         is_Checking = false;
         checkTarget = null;
         currentState = MonsterState.RETURN;
+        
     }
     /// <summary>
     /// 警告状态下的检测，用于启动追击及取消警戒状态
@@ -565,7 +586,10 @@ public class FindRoadController : MonoBehaviour
                 if (!alertAngleWithRaycast())
                 {
                     if (alertLstLostTime == 0.0f) alertLstLostTime = Time.time;
-                    if (Time.time - alertLstLostTime >= 0.0f) alertRate -= 0.8f;
+                    if (Time.time - alertLstLostTime >= 0.0f)
+                    {
+                        alertRate -= 0.8f;
+                    }                        
                 }
                 else
                 {
