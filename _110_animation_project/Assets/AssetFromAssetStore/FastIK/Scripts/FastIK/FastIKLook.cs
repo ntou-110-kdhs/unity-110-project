@@ -26,15 +26,23 @@ namespace DitzelGames.FastIK
 
             StartDirection = Target.position - transform.position;
             StartRotation = transform.rotation;
+            Debug.Log("Target.position:" + Target.position);
+            Debug.Log("transform.position:" + transform.position);
+            Debug.Log("Target.position - transform.position" + (Target.position - transform.position));
         }
 
-        void Update()
+        void LateUpdate()
         {
             if (Target == null)
                 return;
 
+            //Debug.Log((Quaternion.FromToRotation(StartDirection, Target.position - transform.position) * StartRotation).eulerAngles);
 
-            transform.rotation = Quaternion.FromToRotation(StartDirection, Target.position - transform.position) * StartRotation;
+
+
+            //transform.rotation = Quaternion.FromToRotation(StartDirection, Target.position - transform.position) * StartRotation;
+            StartDirection = Target.position - transform.position;
+            transform.rotation = Quaternion.LookRotation(StartDirection, Vector3.up);// * StartRotation;
         }
     }
 }

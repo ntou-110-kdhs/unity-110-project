@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using DitzelGames.FastIK;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +12,10 @@ public class PlayerAnimateController : MonoBehaviour
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
     [SerializeField]
     private Transform RightHandTarget;
+    //部位IK
+    private FastIKFabric[] IKs;
+    //頭部IK
+    private FastIKLook[] HeadIK;
 
     /***********推移動畫***********/
     bool isPushingObject = false;   //是否正在推動物體
@@ -18,10 +23,52 @@ public class PlayerAnimateController : MonoBehaviour
 
     private void Start()
     {
-        animator=GetComponent<Animator>();      //指定此物件的ANIMATOR
+        //尋找有含IK的物件
+        IKs = FindObjectsOfType(typeof(FastIKFabric)) as FastIKFabric[];
+        HeadIK= FindObjectsOfType(typeof(FastIKLook)) as FastIKLook[];
+        //EnabledIKInScene();
+        DisabledIKInScene();
+
+        animator =GetComponent<Animator>();      //指定此物件的ANIMATOR
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
     }
+    /***********IK動畫***********/
+
+    /// <summary>
+    /// 停止人物身上所有的IK
+    /// </summary>
+    private void DisabledIKInScene()
+    {
+        //四肢IK
+        for (int i = 0; i < IKs.Length; i++)
+        {
+            IKs[i].GetComponent<FastIKFabric>().enabled = false;
+        }
+        //頭部IK
+        for (int i = 0; i < HeadIK.Length; i++)
+        {
+            HeadIK[i].GetComponent<FastIKLook>().enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 啟用人物身上所有的IK
+    /// </summary>
+    private void EnabledIKInScene()
+    {
+        for (int i = 0; i < IKs.Length; i++)
+        {
+            IKs[i].GetComponent<FastIKFabric>().enabled = true;
+        }
+        //頭部IK
+        for (int i = 0; i < HeadIK.Length; i++)
+        {
+            HeadIK[i].GetComponent<FastIKLook>().enabled = true;
+        }
+    }
+
+    /***********IK動畫***********/
 
     /***********影子動畫***********/
     public void jumpIntoShadow()                        //潛入影子動畫
