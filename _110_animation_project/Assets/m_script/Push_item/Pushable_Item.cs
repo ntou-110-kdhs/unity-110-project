@@ -87,6 +87,7 @@ public class Pushable_Item : MonoBehaviour
         {/*
             Vector3 tempVector = new Vector3(hit.point.x, this.transform.position.y, hit.point.z) + new Vector3((float)1.2 * hit.normal.x, 0, (float)1.2 * hit.normal.z);
             this.transform.position = tempVector;*/
+            if(new Vector3(0, 0, hit.normal.z) != Vector3.zero)
             this.transform.rotation = Quaternion.LookRotation(new Vector3(0 , 0, hit.normal.z ));
             
         }
