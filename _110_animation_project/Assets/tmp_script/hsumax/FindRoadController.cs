@@ -188,9 +188,10 @@ public class FindRoadController : MonoBehaviour
                     transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed);
                     agent.SetDestination(checkTarget.position);
                 }
-                
+
 
                 //该状态下的检测指令
+                EnemyDistanceCheck();
                 CheckingCheck();
                 break;
 

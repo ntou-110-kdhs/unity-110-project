@@ -14,7 +14,7 @@ public class ThrowItemsModule : MonoBehaviour
     //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
     //components
-    private PlayerController playerController;
+    private TestPlayerController playerController;
     private CharacterController charController;
     private ShadowModule shadowModule;
     private Push_Module pushModule;
@@ -56,7 +56,7 @@ public class ThrowItemsModule : MonoBehaviour
     void Start()
     {
         //獲取component
-        playerController = this.GetComponent<PlayerController>();
+        playerController = this.GetComponent<TestPlayerController>();
         if (playerController == null) Debug.LogError("player Controller is not attatched");
         charController = this.GetComponent<CharacterController>();
         if (charController == null) Debug.LogError("character Controller is not attatched");
