@@ -28,6 +28,7 @@ public class M_TestPlayerController : MonoBehaviour
     private bool isAbleToShoot = false;
     public bool IsAbleToShoot { get { return isAbleToShoot; } set { isAbleToShoot = value; } }    //角色是否可以進行射箭    ableToShoot() 進行調整
     private bool isShooting = false;        //角色是否正在射擊      避免同時射擊多個目標
+    public bool IsShooting { get { return isShooting; } set { isShooting = value; } }
     /**********繩索射出*********/
 
     /**********物理性質*********/
@@ -35,7 +36,9 @@ public class M_TestPlayerController : MonoBehaviour
     [SerializeField] private float charJumpSpeed = 8.0f;
     [SerializeField] private float gravity = 20.0f;
     /**********物理性質*********/
-
+    //是否可以移動
+    private bool isMovable = true;
+    public bool IsMovable { get { return isMovable; } set { isMovable = value; } }
 
     //人物移動方向
     private Vector3 moveDirection = Vector3.zero;
@@ -136,7 +139,7 @@ public class M_TestPlayerController : MonoBehaviour
 
 
         /**********繩索射出*********/
-        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && isShooting == false && !throwModule.IsTakingAim)
+        if (Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !pushModule.IsPushingObject && isAbleToShoot && tiedObjectInRange != null && shootingTarget != null && IsShooting == false && !throwModule.IsTakingAim)
         {
             rayBeforeShoot = new Ray(crossbowInHand.transform.position, shootingTarget.transform.position - crossbowInHand.transform.position);
             Debug.DrawLine(crossbowInHand.transform.position, shootingTarget.transform.position, Color.red);
@@ -157,8 +160,11 @@ public class M_TestPlayerController : MonoBehaviour
         /**********繩索射出*********/
 
 
-
-        if (shadowModule.IsShadowing)
+        if (!isMovable)
+        {
+            //不可移動時
+        }
+        else if (shadowModule.IsShadowing)
         {
             //潛行後移動的模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;
@@ -340,7 +346,7 @@ public class M_TestPlayerController : MonoBehaviour
         tiedObjectInRange.GetComponent<Rope_Tied_Object>().getLineRendererPoints(ropeDrawLine.ropeTiedToObject());
         lastTargetDistance = 0;
         tempShootTarget = null;
-        isShooting = false;
+        IsShooting = false;
         charController.enabled = true;
     }
 
@@ -383,7 +389,7 @@ public class M_TestPlayerController : MonoBehaviour
     //計算十字弓與目標的角度  並傳遞
     public void crossBowShoot()
     {
-        isShooting = true;
+        IsShooting = true;
         float distanceBetweenTarget = 0;
         float y = 0;
         charController.enabled = false;
@@ -416,7 +422,7 @@ public class M_TestPlayerController : MonoBehaviour
                 float targetDis = Vector3.Distance(this.transform.position, allShootingTargetArray[i].transform.position);
                 if (targetDis <= 25)
                 {
-                    if (screenPos.x >= 400 && screenPos.x <= 700 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
+                    if (screenPos.x >= 350 && screenPos.x <= 750 && screenPos.y >= 50 && screenPos.y <= 450 && targetDis >= lastTargetDistance)
                     {
                         shootingTarget = allShootingTargetArray[i];
                         lastTargetDistance = targetDis;
