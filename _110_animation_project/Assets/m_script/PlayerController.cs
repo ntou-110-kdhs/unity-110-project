@@ -44,7 +44,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float charJumpSpeed = 8.0f;
     [SerializeField] private float gravity = 20.0f;
     /**********物理性質*********/
-
+    //是否可以移動
+    private bool isMovable = true;
+    public bool IsMovable { get { return isMovable; } set { isMovable = value; } }
 
     //人物移動方向
     private Vector3 moveDirection = Vector3.zero;
@@ -166,8 +168,11 @@ public class PlayerController : MonoBehaviour
         /**********繩索射出*********/
 
 
-
-        if (shadowModule.IsShadowing)
+        if (!isMovable)
+        {
+            //不可移動時
+        }
+        else if (shadowModule.IsShadowing)
         {
             //潛行後移動的模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;

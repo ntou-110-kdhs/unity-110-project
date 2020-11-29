@@ -7,12 +7,12 @@ public class PlayerAnimateController : MonoBehaviour
 {
     Animator animator;              //設置空的ANIMATOR變數
     private ThrowItemsModule throwModule;   //丟東西模組
-    private M_TestPlayerController playerController;   //丟東西模組
+    private PlayerController playerController;   //丟東西模組
     public float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
     float attackTimeOffSet = -10;   //攻擊連擊判定
-    int speed = 6;                     //移動攻擊時滑動距離
+    float speed = 6;                     //移動攻擊時滑動距離
     [SerializeField]
     private Transform RightHandTarget;
     //部位IK
@@ -36,7 +36,7 @@ public class PlayerAnimateController : MonoBehaviour
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
 
-        playerController = GetComponent<M_TestPlayerController>();
+        playerController = GetComponent<PlayerController>();
     }
     /***********IK動畫***********/
 
@@ -191,7 +191,7 @@ public class PlayerAnimateController : MonoBehaviour
 
     public void attackMove(int forwardspeed)                           //攻擊時   玩家移動
     {
-            InvokeRepeating("attackForwardMove", 0, Time.deltaTime);
+            InvokeRepeating("attackForwardMove", 0, 0.02f);
             speed = forwardspeed;
     }
 
@@ -200,6 +200,7 @@ public class PlayerAnimateController : MonoBehaviour
         Vector3 moveDirection = transform.TransformDirection(new Vector3(0, 0, 1)/*.normalized*/);
         moveDirection.y -= 20 * Time.deltaTime;
         moveDirection *= speed;
+        speed -= 0.1f;
         this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
     }
 
