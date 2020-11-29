@@ -5,7 +5,6 @@ TagManager:
   serializedVersion: 2
   tags:
   - Plane
-  - Enimy
   - Movable
   - Rope_Tied_Object
   - Crossbow_Target

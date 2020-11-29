@@ -200,7 +200,7 @@ public class PlayerAnimateController : MonoBehaviour
         Vector3 moveDirection = transform.TransformDirection(new Vector3(0, 0, 1)/*.normalized*/);
         moveDirection.y -= 20 * Time.deltaTime;
         moveDirection *= speed;
-        speed -= 0.1f;
+        if(speed>0.1) speed -= 0.1f;
         this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
     }
 
