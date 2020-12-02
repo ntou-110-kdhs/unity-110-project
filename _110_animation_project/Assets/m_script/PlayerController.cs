@@ -39,12 +39,21 @@ public class PlayerController : MonoBehaviour
     public bool IsShooting { get { return isShooting; } set { isShooting = value; } }
     /**********繩索射出*********/
 
+    /************戰鬥***********/
+    public bool Isparring { get { return isparring; } set { isparring = value; } }    //角色是否正在格檔
+    private bool isparring = false;        //角色是否正在格檔
+    public bool Isblocking { get { return isblocking; } set { isblocking = value; } }    //角色是否正在防禦
+    private bool isblocking = false;        //角色是否正在防禦
+    /************戰鬥***********/
+
     /**********物理性質*********/
     [SerializeField] private float charSpeed = 6.0f;
     [SerializeField] private float charJumpSpeed = 8.0f;
     [SerializeField] private float gravity = 20.0f;
     /**********物理性質*********/
-
+    //是否可以移動
+    private bool isMovable = true;
+    public bool IsMovable { get { return isMovable; } set { isMovable = value; } }
 
     //人物移動方向
     private Vector3 moveDirection = Vector3.zero;
@@ -166,8 +175,11 @@ public class PlayerController : MonoBehaviour
         /**********繩索射出*********/
 
 
-
-        if (shadowModule.IsShadowing)
+        if (!isMovable)
+        {
+            //不可移動時
+        }
+        else if (shadowModule.IsShadowing)
         {
             //潛行後移動的模組
             freeLookCam.m_RecenterToTargetHeading.m_enabled = true;

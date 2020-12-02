@@ -35,15 +35,15 @@ public class Damage_script : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         
-        if (other.tag == "Enimy")
+        if (other.tag == "Enemy")
         {
             
-            if (other.tag == "Enimy")
+            if (other.tag == "Enemy")
             {
                 other_HC = other.GetComponentInChildren<HeathControl>();
             }
 
-            if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Enimy"))
+            if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Enemy"))
             {
                 //Debug.Log("before hit" + other_HC.ishitted);
                 other_HC.ishitted = true;

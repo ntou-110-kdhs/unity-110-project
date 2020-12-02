@@ -458,6 +458,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
+      - time: 0
+        functionName: attackInit
+        data: 
+        objectReferenceParameter: {fileID: 100008, guid: 3f5d4026cd53a4b4dae029bb1011c58a,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.4673629
         functionName: attackStart
         data: 
@@ -468,6 +476,13 @@ ModelImporter:
         messageOptions: 0
       - time: 0.6422977
         functionName: attackFinished
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 1
+        functionName: attackEnd
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

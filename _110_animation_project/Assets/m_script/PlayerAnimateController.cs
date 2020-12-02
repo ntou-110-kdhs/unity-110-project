@@ -7,9 +7,12 @@ public class PlayerAnimateController : MonoBehaviour
 {
     Animator animator;              //設置空的ANIMATOR變數
     private ThrowItemsModule throwModule;   //丟東西模組
+    private PlayerController playerController;   //丟東西模組
     public float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
+    float attackTimeOffSet = -10;   //攻擊連擊判定
+    float speed = 6;                     //移動攻擊時滑動距離
     [SerializeField]
     private Transform RightHandTarget;
     //部位IK
@@ -32,6 +35,8 @@ public class PlayerAnimateController : MonoBehaviour
         animator =GetComponent<Animator>();      //指定此物件的ANIMATOR
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
+
+        playerController = GetComponent<PlayerController>();
     }
     /***********IK動畫***********/
 
@@ -172,18 +177,49 @@ public class PlayerAnimateController : MonoBehaviour
     }
     /***********投擲動畫***********/
 
+    /***********攻擊動畫***********/
+    public void attackInit()                           //攻擊動畫開始   使玩家停止移動
+    {
+        playerController.IsMovable = false;
 
-    public void attackStart()                           //攻擊動畫開始   能開始傷害NPC
+    }
+    public void attackStart()                           //攻擊開始   能開始傷害NPC
     {
         Debug.Log("on attack");
         BroadcastMessage("Attacking");
     }
 
-    public void attackFinished()                           //攻擊動畫結束   停止傷害NPC
+    public void attackMove(int forwardspeed)                           //攻擊時   玩家移動
     {
-        BroadcastMessage("Stop_Attacking");
+            InvokeRepeating("attackForwardMove", 0, 0.02f);
+            speed = forwardspeed;
     }
 
+    private void attackForwardMove()        //攻擊時往前移動功能
+    {
+        Vector3 moveDirection = transform.TransformDirection(new Vector3(0, 0, 1)/*.normalized*/);
+        moveDirection.y -= 20 * Time.deltaTime;
+        moveDirection *= speed;
+        if(speed>0.1) speed -= 0.1f;
+        this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
+    }
+
+    private void attackForwardMoveStop()        //停止攻擊時往前移動功能
+    {
+        CancelInvoke("attackForwardMove");
+    }
+
+    public void attackFinished()                           //攻擊結束   停止傷害NPC
+    {
+        playerController.IsMovable = true;
+        BroadcastMessage("Stop_Attacking");
+    }
+    public void attackEnd()                           //攻擊結束   使玩家可以移動
+    {
+        playerController.IsMovable = true;
+
+    }
+    /***********攻擊動畫***********/
     public void resetAllTrigger()                       //重製所有TRIGGER
     {
         animator.ResetTrigger("Idle");
@@ -338,14 +374,20 @@ public class PlayerAnimateController : MonoBehaviour
             }
             else
             {
-                animator.SetTrigger("Attacking");
+                //防止單次點擊 造成2次攻擊TRIGGER
+                if (Time.time - attackTimeOffSet >= 0.2)
+                {
+                    attackTimeOffSet = Time.time;
+                    animator.SetTrigger("Attacking");
+                }
+                
             }
             
         }
 
         else
         {
-            animator.ResetTrigger("Attacking");
+            //animator.ResetTrigger("Attacking");
             animator.ResetTrigger("throw_item");
         }
 
