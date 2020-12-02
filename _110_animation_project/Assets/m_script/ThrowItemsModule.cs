@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ThrowItemsModule : MonoBehaviour
 {
@@ -27,6 +28,10 @@ public class ThrowItemsModule : MonoBehaviour
     [SerializeField] private float throwingSpeed = 0.0f;
     // 要丟的物品
     [SerializeField] private List<GameObject> throwedItems;
+    // 要丟的物品的圖片
+    [SerializeField] private List<Sprite> throwedSprites;
+    // 丟物品的UI
+    [SerializeField] private Image throwItemUI;
     // 目前丟東西的順位
     private int throwIndex = 0;
     // 要丟物品的位置
@@ -69,6 +74,9 @@ public class ThrowItemsModule : MonoBehaviour
 
         //取得animateController
         animateController = GetComponent<PlayerAnimateController>();
+
+
+        throwItemUI.sprite = throwedSprites[0];
     }
 
     void Update()
@@ -165,8 +173,8 @@ public class ThrowItemsModule : MonoBehaviour
         {
             throwIndex++;
             throwIndex = throwIndex % 3;
-                        
-            if(isTakingAim)
+            throwItemUI.sprite = throwedSprites[throwIndex];
+            if (isTakingAim)
             {
                 // 銷毀prefab
                 Destroy(throwPrefab);

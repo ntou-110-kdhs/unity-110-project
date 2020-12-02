@@ -14,7 +14,10 @@ public class HealthSystem : MonoBehaviour
     // 血量
     private float hp = 0;
     // 褪去速度
-    [SerializeField] private float fadeSpeed = 0;
+    private float fadeSpeed = 0;
+
+
+    [SerializeField] private Transform lookAtTarget = null;
 
     // Start is called before the first frame update
     void Start()
@@ -29,6 +32,12 @@ public class HealthSystem : MonoBehaviour
     {
         setImageHpFadeBar();
 
+
+        if(lookAtTarget != null)
+        {
+            Vector3 targetPostition = new Vector3(lookAtTarget.position.x, transform.position.y, lookAtTarget.position.z);
+            transform.LookAt(targetPostition);
+        }
         // debug();
     }
 
