@@ -40,8 +40,7 @@ public class PlayerController : MonoBehaviour
     /**********繩索射出*********/
 
     /************戰鬥***********/
-    public bool Isparring { get { return isparring; } set { isparring = value; } }    //角色是否正在格檔
-    private bool isparring = false;        //角色是否正在格檔
+    //
     public bool Isblocking { get { return isblocking; } set { isblocking = value; } }    //角色是否正在防禦
     private bool isblocking = false;        //角色是否正在防禦
     /************戰鬥***********/
@@ -331,6 +330,13 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    /**********玩家格檔*********/
+    void player_blocking()  //防禦
+    {
+        //  gameObject.BroadcastMessage("activate_block");
+        Isblocking = true;
+    }
+    /**********玩家格檔*********/
 
     /**********繩索射出*********/
     public void shootAnimationEnd()

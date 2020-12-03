@@ -6,12 +6,17 @@ using UnityEngine;
 public class PlayerAnimateController : MonoBehaviour
 {
     Animator animator;              //設置空的ANIMATOR變數
+    AnimatorStateInfo stateinfo;    //當前的ANIMATION
     private ThrowItemsModule throwModule;   //丟東西模組
     private PlayerController playerController;   //丟東西模組
+    private Damage_script PlayerDamage;     //玩家攻擊傷害(武器上)
+    private Push_Module pushModule;
+    private CharacterController charController;
+    private ShadowModule shadowModule;
     public float forward=0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
-    float attackTimeOffSet = -10;   //攻擊連擊判定
+    float TimeOffSet = -10;   //連擊判定
     float speed = 6;                     //移動攻擊時滑動距離
     [SerializeField]
     private Transform RightHandTarget;
@@ -37,6 +42,12 @@ public class PlayerAnimateController : MonoBehaviour
         throwModule = GetComponent<ThrowItemsModule>();
 
         playerController = GetComponent<PlayerController>();
+
+        PlayerDamage = GetComponentInChildren<Damage_script>();
+
+        pushModule = GetComponent<Push_Module>();
+        charController = GetComponent<CharacterController>();
+        shadowModule = GetComponent<ShadowModule>();
     }
     /***********IK動畫***********/
 
@@ -186,22 +197,30 @@ public class PlayerAnimateController : MonoBehaviour
     public void attackStart()                           //攻擊開始   能開始傷害NPC
     {
         Debug.Log("on attack");
-        BroadcastMessage("Attacking");
+        PlayerDamage.Attacking();
     }
 
     public void attackMove(int forwardspeed)                           //攻擊時   玩家移動
     {
-            InvokeRepeating("attackForwardMove", 0, 0.02f);
-            speed = forwardspeed;
+        if (animator.GetCurrentAnimatorClipInfo(0)[0].clip.name==("kachujin_Move_Attack_F"))
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(transform.TransformDirection(new Vector3(right, 0, forward)), Vector3.up);
+            transform.rotation = targetRotation;
+        }
+
+
+        InvokeRepeating("attackForwardMove", 0, 0.02f);
+        speed = forwardspeed;
     }
 
     private void attackForwardMove()        //攻擊時往前移動功能
     {
-        Vector3 moveDirection = transform.TransformDirection(new Vector3(0, 0, 1)/*.normalized*/);
+
+        Vector3 moveDirection = transform.forward;
         moveDirection.y -= 20 * Time.deltaTime;
         moveDirection *= speed;
         if(speed>0.1) speed -= 0.1f;
-        this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
+        this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);        
     }
 
     private void attackForwardMoveStop()        //停止攻擊時往前移動功能
@@ -212,7 +231,7 @@ public class PlayerAnimateController : MonoBehaviour
     public void attackFinished()                           //攻擊結束   停止傷害NPC
     {
         playerController.IsMovable = true;
-        BroadcastMessage("Stop_Attacking");
+        PlayerDamage.Stop_Attacking();
     }
     public void attackEnd()                           //攻擊結束   使玩家可以移動
     {
@@ -279,26 +298,7 @@ public class PlayerAnimateController : MonoBehaviour
 
             /**********推移移動**********/
             if (isPushingObject)
-            {   /*
-                if (Input.GetKey(KeyCode.W))
-                {
-                    if (forward < 1f) forward += 0.1f;         //限制forward在0~1之間
-                    animator.SetFloat("forward", forward);
-                }
-                else if (Input.GetKey(KeyCode.S))
-                {
-                    if (forward > -1f) forward -= 0.1f;      //限制forward在0~1之間
-                    animator.SetFloat("forward", forward);
-                }
-                else                                        //沒有輸入W或S   forward將回歸至0
-                {
-
-                    if (forward >= 0.1) forward -= 0.1f;
-                    else if (forward <= -0.1) forward += 0.1f;
-
-                    animator.SetFloat("forward", forward);      //將前進 後退 歸0
-                }
-                */
+            {   
             }
             /**********推移移動**********/
             /**********一般移動**********/
@@ -372,24 +372,42 @@ public class PlayerAnimateController : MonoBehaviour
             {
                 animator.SetTrigger("throw_item");
             }
-            else
+            else if(!(pushModule.IsPushingObject || shadowModule.IsInShadow || !charController.isGrounded))
             {
                 //防止單次點擊 造成2次攻擊TRIGGER
-                if (Time.time - attackTimeOffSet >= 0.2)
+                if (Time.time - TimeOffSet >= 0.2)
                 {
-                    attackTimeOffSet = Time.time;
+                    TimeOffSet = Time.time;
                     animator.SetTrigger("Attacking");
                 }
-                
             }
             
         }
-
         else
         {
             //animator.ResetTrigger("Attacking");
             animator.ResetTrigger("throw_item");
         }
+
+        if (Input.GetMouseButton(1))        //右鍵 防禦
+        {
+            if (!(pushModule.IsPushingObject || shadowModule.IsInShadow || !charController.isGrounded || throwModule.IsTakingAim))
+            {
+                //防止單次點擊 造成2次防禦TRIGGER
+                if (Time.time - TimeOffSet >= 0.2)
+                {
+                    TimeOffSet = Time.time;
+                    animator.SetBool("Blocking", true);
+                }
+            }
+
+        }
+        else
+        {
+            //animator.ResetTrigger("Attacking");
+            animator.SetBool("Blocking", false);
+        }
+
 
         if (Input.GetKey(KeyCode.Space))    //空白建 跳躍
         {
@@ -410,5 +428,31 @@ public class PlayerAnimateController : MonoBehaviour
         }
 
 
+
+    }
+    void LateUpdate()
+    {
+        stateinfo = animator.GetCurrentAnimatorStateInfo(0);
+        //Debug.Log(stateinfo);
+        //若非攻擊狀態 取消傷害
+        if (!(stateinfo.IsName("kachujin_swing_sword") || stateinfo.IsName("kachujin_Move_Attack_F") || stateinfo.IsName("kachujin_Move_Attack_IK_F2") || stateinfo.IsName("kachujin_Move_Attack_IK_F3")))
+        {
+            PlayerDamage.Stop_Attacking();
+            
+        }
+        //若非防禦狀態 取消防禦
+        if (!(stateinfo.IsName("Block") || stateinfo.IsName("Block2")))
+        {
+            playerController.Isblocking = false;
+            if (stateinfo.IsName("End_Block"))
+            {
+                attackEnd();
+            }
+        }
+        else
+        {
+            EnabledIKInScene();
+        }
+        Debug.Log(playerController.Isblocking);
     }
 }

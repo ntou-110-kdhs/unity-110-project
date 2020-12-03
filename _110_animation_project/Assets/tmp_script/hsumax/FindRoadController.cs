@@ -416,6 +416,8 @@ public class FindRoadController : MonoBehaviour
 
         if(distanceToCheckTarget < 2f)
         {
+            // to do
+            // animator idle
             Debug.Log("Is Checking...");
             Invoke("CheckFinish", 2);
         }

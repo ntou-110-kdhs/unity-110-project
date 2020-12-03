@@ -46,7 +46,7 @@ public class knight_damage_script : MonoBehaviour
                 other_HC = other.GetComponent<HeathControl>();
                 other_PC = other.GetComponent<PlayerController>();
             }
-
+            /*
             if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Player") && other_PC.Isparring == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定是否是因阻擋區域造成碰撞   
             {
                 Debug.Log("parr");
@@ -54,7 +54,8 @@ public class knight_damage_script : MonoBehaviour
                 other.SendMessageUpwards("got_parr");                   // got_blocked  在HC裡
 
             }
-            else if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Player") && other_PC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定是否是因阻擋區域造成碰撞  以及當前是否為防禦中
+            */
+            if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Player") && other_PC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定是否是因阻擋區域造成碰撞  以及當前是否為防禦中
             {
                  Debug.Log("BLOCKED");
                 //Debug.Log("before blocked"+other_HC.ishitted);
