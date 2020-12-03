@@ -28,7 +28,7 @@ public class ShadowModule : MonoBehaviour
 
     //人物身上的mesh物件陣列
     private List<GameObject> meshs = new List<GameObject>();
-    //水圈圈粒子物件
+    //影子潛入物件
     [SerializeField] private GameObject ripple;
     //按著E 進入影子的延遲
     private float delayCount = 0;
@@ -132,8 +132,10 @@ public class ShadowModule : MonoBehaviour
 
 
             isShadowing = true;
-            ripple.GetComponent<ParticleSystem>().Play();
             freeLookCam.LookAt = transform;
+
+            ripple.GetComponent<ParticleSystem>().Play();
+
             // freeLookCam.m_Orbits[0] = top
             // freeLookCam.m_Orbits[1] = mid
             // freeLookCam.m_Orbits[2] = bot
@@ -158,7 +160,10 @@ public class ShadowModule : MonoBehaviour
         {
             isShadowing = false;
             animateController.jumpOutOfShadow();
+
             ripple.GetComponent<ParticleSystem>().Stop();
+
+
             freeLookCam.LookAt = transform.GetChild(2);
             // freeLookCam.m_Orbits[0] = top
             // freeLookCam.m_Orbits[1] = mid
@@ -185,6 +190,11 @@ public class ShadowModule : MonoBehaviour
         // 把所有mesh物件關掉/打開
         for (int i = 0; i < meshs.Count; i++)
         {
+            if(meshs[i] == ripple)
+            {
+                continue;
+            }
+
             if (meshs[i].GetComponent<MeshRenderer>())
             {
                 meshs[i].GetComponent<MeshRenderer>().enabled = !isShadowing;
