@@ -43,5 +43,29 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 設定場景中所有敵人的Outline Width
+    /// 0 = 不顯示 Outline, 1 = 顯示
+    /// </summary>
+    /// <param name="outlineWidth"></param>
+    public void setAllEnemiesOutline(int outlineWidth)
+    {
+        if(outlineWidth > 1)
+        {
+            outlineWidth = 1;
+        }
+        else if(outlineWidth < 0)
+        {
+            outlineWidth = 0;
+        }
+
+
+
+        for(int i = 0; i < enemies.Count; i++)
+        {
+            enemies[i].GetComponent<Outline>().OutlineWidth = outlineWidth;
+        }
+    }
+
 
 }

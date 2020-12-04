@@ -13,7 +13,7 @@ public class PlayerAnimateController : MonoBehaviour
     private Push_Module pushModule;
     private CharacterController charController;
     private ShadowModule shadowModule;
-    public float forward=0;
+    public float forward = 0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
     float TimeOffSet = -10;   //連擊判定
@@ -33,11 +33,11 @@ public class PlayerAnimateController : MonoBehaviour
     {
         //尋找有含IK的物件
         IKs = FindObjectsOfType(typeof(FastIKFabric)) as FastIKFabric[];
-        HeadIK= FindObjectsOfType(typeof(FastIKLook)) as FastIKLook[];
+        HeadIK = FindObjectsOfType(typeof(FastIKLook)) as FastIKLook[];
         //EnabledIKInScene();
         DisabledIKInScene();
 
-        animator =GetComponent<Animator>();      //指定此物件的ANIMATOR
+        animator = GetComponent<Animator>();      //指定此物件的ANIMATOR
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
 
@@ -91,7 +91,7 @@ public class PlayerAnimateController : MonoBehaviour
     {
         resetAllTrigger();
         animator.Play("jumping_into_shadow");
-        
+
     }
 
     public void jumpOutOfShadowEnd()                //jumpOutOfShadow 動畫結束時呼叫
@@ -112,7 +112,7 @@ public class PlayerAnimateController : MonoBehaviour
     /***********推移動畫***********/
     public void pushingObject()                         //讓playercontroller傳遞  正在推動物體  並改變動畫控制器的isPushingObject
     {
-        animator.SetBool("pushing",true);
+        animator.SetBool("pushing", true);
         isPushingObject = true;
     }
 
@@ -162,7 +162,7 @@ public class PlayerAnimateController : MonoBehaviour
         }
         else                                //若目標物在下方
         {
-            float angle = y*-1 / numBaseOnDis;
+            float angle = y * -1 / numBaseOnDis;
             if (angle > 1) angle = 1;
             animator.SetFloat("shooting_angle", Mathf.Lerp(0.5f, 0, angle));
         }
@@ -202,7 +202,7 @@ public class PlayerAnimateController : MonoBehaviour
 
     public void attackMove(int forwardspeed)                           //攻擊時   玩家移動
     {
-        if (animator.GetCurrentAnimatorClipInfo(0)[0].clip.name==("kachujin_Move_Attack_F"))
+        if (animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == ("kachujin_Move_Attack_F"))
         {
             Quaternion targetRotation = Quaternion.LookRotation(transform.TransformDirection(new Vector3(right, 0, forward)), Vector3.up);
             transform.rotation = targetRotation;
@@ -219,8 +219,8 @@ public class PlayerAnimateController : MonoBehaviour
         Vector3 moveDirection = transform.forward;
         moveDirection.y -= 20 * Time.deltaTime;
         moveDirection *= speed;
-        if(speed>0.1) speed -= 0.1f;
-        this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);        
+        if (speed > 0.1) speed -= 0.1f;
+        this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
     }
 
     private void attackForwardMoveStop()        //停止攻擊時往前移動功能
@@ -257,7 +257,7 @@ public class PlayerAnimateController : MonoBehaviour
         {
             animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1f);
 
-            animator.SetIKPosition(AvatarIKGoal.RightHand, RightHandTarget.position); 
+            animator.SetIKPosition(AvatarIKGoal.RightHand, RightHandTarget.position);
         }
     }
 
@@ -290,15 +290,15 @@ public class PlayerAnimateController : MonoBehaviour
             {
                 animator.ResetTrigger("walking");
             }
-            else 
-            { 
+            else
+            {
                 animator.SetTrigger("walking");
             }
 
 
             /**********推移移動**********/
             if (isPushingObject)
-            {   
+            {
             }
             /**********推移移動**********/
             /**********一般移動**********/
@@ -381,7 +381,7 @@ public class PlayerAnimateController : MonoBehaviour
                     animator.SetTrigger("Attacking");
                 }
             }
-            
+
         }
         else
         {
@@ -420,7 +420,7 @@ public class PlayerAnimateController : MonoBehaviour
 
         if (!Input.anyKey)          //沒點擊 也沒按按鍵
         {
-            if(Time.time- idletime>=0.1)animator.SetTrigger("Idle");           //空閒一段時間  才會設置IDLE TRIGGER
+            if (Time.time - idletime >= 0.1) animator.SetTrigger("Idle");           //空閒一段時間  才會設置IDLE TRIGGER
         }
         else
         {
@@ -438,7 +438,7 @@ public class PlayerAnimateController : MonoBehaviour
         if (!(stateinfo.IsName("kachujin_swing_sword") || stateinfo.IsName("kachujin_Move_Attack_F") || stateinfo.IsName("kachujin_Move_Attack_IK_F2") || stateinfo.IsName("kachujin_Move_Attack_IK_F3")))
         {
             PlayerDamage.Stop_Attacking();
-            
+
         }
         //若非防禦狀態 取消防禦
         if (!(stateinfo.IsName("Block") || stateinfo.IsName("Block2")))

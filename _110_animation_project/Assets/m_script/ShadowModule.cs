@@ -1,6 +1,7 @@
 ﻿using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine;
 
 public class ShadowModule : MonoBehaviour
@@ -9,6 +10,15 @@ public class ShadowModule : MonoBehaviour
     private PlayerAnimateController animateController;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
+    // minMapController
+    [SerializeField]  private MiniMapController miniMap;
+    // 敵人管理器
+    [SerializeField] private EnemyManager enemyManager;
+
+    //鏡頭濾鏡特效
+    private PostProcessVolume ppv = null;
+
+    
 
     /**********影子偵測*********/
     //你人是否站在影子上
@@ -101,6 +111,7 @@ public class ShadowModule : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         //載入人物操控
         charController = GetComponent<CharacterController>();
         //取得animateController
@@ -110,11 +121,40 @@ public class ShadowModule : MonoBehaviour
         {
             freeLookCam = GameObject.Find("CM FreeLook1").GetComponent<CinemachineFreeLook>();
         }
+
+        // 取得 PostProcessVolume
+        ppv = Camera.main.GetComponent<PostProcessVolume>();
+        ppv.weight = 0;
+
+        // 取得 miniMap Controller
+        miniMap = FindObjectOfType<MiniMapController>();
+        miniMap.setBlackPanel(false);
+        
+        // 取得 enemyManager
+        enemyManager = FindObjectOfType<EnemyManager>();        
+        enemyManager.setAllEnemiesOutline(0);
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(isShadowing && ppv.weight < 1)
+        {
+            ppv.weight += Time.deltaTime;
+            if (ppv.weight > 1)
+            {
+                ppv.weight = 1;
+            }           
+        }
+        else if(!isShadowing && ppv.weight > 0)
+        {
+            ppv.weight -= Time.deltaTime;
+            if (ppv.weight < 0)
+            {
+                ppv.weight = 0;
+            }
+        }
     }
 
     /// <summary>
@@ -134,7 +174,15 @@ public class ShadowModule : MonoBehaviour
             isShadowing = true;
             freeLookCam.LookAt = transform;
 
+            // 顯示水波特效
             ripple.GetComponent<ParticleSystem>().Play();
+
+            // 開啟小地圖黑背景
+            miniMap.setBlackPanel(true);
+
+            // 開啟敵人輪廓
+            enemyManager.setAllEnemiesOutline(1);
+
 
             // freeLookCam.m_Orbits[0] = top
             // freeLookCam.m_Orbits[1] = mid
@@ -161,8 +209,14 @@ public class ShadowModule : MonoBehaviour
             isShadowing = false;
             animateController.jumpOutOfShadow();
 
+            // 關閉水波特效
             ripple.GetComponent<ParticleSystem>().Stop();
 
+            // 關閉小地圖黑背景
+            miniMap.setBlackPanel(false);
+
+            // 關閉敵人輪廓
+            enemyManager.setAllEnemiesOutline(0);
 
             freeLookCam.LookAt = transform.GetChild(2);
             // freeLookCam.m_Orbits[0] = top
