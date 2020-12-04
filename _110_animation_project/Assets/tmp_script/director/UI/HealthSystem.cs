@@ -8,6 +8,8 @@ public class HealthSystem : MonoBehaviour
     // 取得血條&褪去條的物件
     private Image bar = null;
     private Image fadeBar = null;
+    private bool ishitted = false;
+    public bool Ishitted { get { return ishitted; } set { ishitted = value; } }    //角色是否可以被傷害
 
     // 設定最大血量
     [SerializeField] private float maxHp = 0;
@@ -59,6 +61,8 @@ public class HealthSystem : MonoBehaviour
         float newHp = hp - damagedValue;
         setHp(newHp);
         setFadeSpeed();
+
+        Invoke("reset_hitted", 0.5f);                           //受傷害後  一段時間將不會更動血條
     }
 
     /// <summary>
@@ -120,4 +124,12 @@ public class HealthSystem : MonoBehaviour
             isHealthing(10);
         }
     }
+
+
+    void reset_hitted()
+    {
+        Ishitted = false;
+    }
+
+
 }

@@ -8,7 +8,7 @@ public class PlayerAnimateController : MonoBehaviour
     Animator animator;              //設置空的ANIMATOR變數
     AnimatorStateInfo stateinfo;    //當前的ANIMATION
     private ThrowItemsModule throwModule;   //丟東西模組
-    private PlayerController playerController;   //丟東西模組
+    private M_TestPlayerController playerController;   //玩家控制
     private Damage_script PlayerDamage;     //玩家攻擊傷害(武器上)
     private Push_Module pushModule;
     private CharacterController charController;
@@ -41,7 +41,7 @@ public class PlayerAnimateController : MonoBehaviour
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
 
-        playerController = GetComponent<PlayerController>();
+        playerController = GetComponent<M_TestPlayerController>();
 
         PlayerDamage = GetComponentInChildren<Damage_script>();
 
@@ -230,7 +230,7 @@ public class PlayerAnimateController : MonoBehaviour
 
     public void attackFinished()                           //攻擊結束   停止傷害NPC
     {
-        playerController.IsMovable = true;
+        //playerController.IsMovable = true;
         PlayerDamage.Stop_Attacking();
     }
     public void attackEnd()                           //攻擊結束   使玩家可以移動
@@ -372,7 +372,7 @@ public class PlayerAnimateController : MonoBehaviour
             {
                 animator.SetTrigger("throw_item");
             }
-            else if(!(pushModule.IsPushingObject || shadowModule.IsInShadow || !charController.isGrounded))
+            else if(!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded))
             {
                 //防止單次點擊 造成2次攻擊TRIGGER
                 if (Time.time - TimeOffSet >= 0.2)
@@ -391,7 +391,7 @@ public class PlayerAnimateController : MonoBehaviour
 
         if (Input.GetMouseButton(1))        //右鍵 防禦
         {
-            if (!(pushModule.IsPushingObject || shadowModule.IsInShadow || !charController.isGrounded || throwModule.IsTakingAim))
+            if (!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded || throwModule.IsTakingAim))
             {
                 //防止單次點擊 造成2次防禦TRIGGER
                 if (Time.time - TimeOffSet >= 0.2)
