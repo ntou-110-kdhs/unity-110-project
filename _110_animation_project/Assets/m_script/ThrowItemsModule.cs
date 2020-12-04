@@ -15,7 +15,7 @@ public class ThrowItemsModule : MonoBehaviour
     //類別:開頭大寫，單字分隔開頭大寫 Ex:class MyFirstFamily { };
 
     //components
-    private TestPlayerController playerController;
+    private PlayerController playerController;
     private CharacterController charController;
     private ShadowModule shadowModule;
     private Push_Module pushModule;
@@ -39,7 +39,7 @@ public class ThrowItemsModule : MonoBehaviour
 
     
     //main camera
-    [SerializeField] private Camera mainCam = null;
+    private Camera mainCam = null;
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
     //FreeLook Cam Look at 的 head position
@@ -61,7 +61,7 @@ public class ThrowItemsModule : MonoBehaviour
     void Start()
     {
         //獲取component
-        playerController = this.GetComponent<TestPlayerController>();
+        playerController = this.GetComponent<PlayerController>();
         if (playerController == null) Debug.LogError("player Controller is not attatched");
         charController = this.GetComponent<CharacterController>();
         if (charController == null) Debug.LogError("character Controller is not attatched");

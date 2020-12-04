@@ -368,11 +368,13 @@ public class PlayerAnimateController : MonoBehaviour
 
         if (Input.GetMouseButton(0))        //左鍵 TRIGGER
         {
+
             if (throwModule.IsTakingAim)
             {
+                
                 animator.SetTrigger("throw_item");
             }
-            else if(!(pushModule.IsPushingObject || shadowModule.IsInShadow || !charController.isGrounded))
+            else if(!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded))
             {
                 //防止單次點擊 造成2次攻擊TRIGGER
                 if (Time.time - TimeOffSet >= 0.2)
