@@ -1059,7 +1059,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2266325514292933564}
   - component: {fileID: 7125823215652109062}
-  - component: {fileID: 5547182192914236092}
   m_Layer: 0
   m_Name: Paladin_J_Nordstrom_Sword
   m_TagString: Untagged
@@ -1132,21 +1131,6 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.06104052, y: -0.006658852, z: 0.3036496}
     m_Extent: {x: 0.15018207, y: 0.045836862, z: 0.50709116}
   m_DirtyAABB: 0
---- !u!114 &5547182192914236092
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618071873961060487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecaa37bb030fb9d41a6dc828b62f0ab5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  onAttack: 0
-  damage_status: 1
-  damage_dealt: 25
 --- !u!1 &2691290795826679205
 GameObject:
   m_ObjectHideFlags: 0
@@ -2108,7 +2092,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1582730274266207023}
-  m_Layer: 0
+  - component: {fileID: 779682371862348233}
+  - component: {fileID: 8266511606262416812}
+  m_Layer: 2
   m_Name: Sword_joint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2129,6 +2115,34 @@ Transform:
   m_Father: {fileID: 1667233381172531191}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &779682371862348233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7132587566649039526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecaa37bb030fb9d41a6dc828b62f0ab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onAttack: 0
+  damage_status: 1
+  damage_dealt: 25
+--- !u!65 &8266511606262416812
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7132587566649039526}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.20212343, y: 0.10921234, z: 0.8195748}
+  m_Center: {x: 0.12004564, y: -0.04448973, z: 0.40978688}
 --- !u!1 &7168219438851741020
 GameObject:
   m_ObjectHideFlags: 0
@@ -2438,10 +2452,9 @@ GameObject:
   - component: {fileID: 4490681326282321291}
   - component: {fileID: 1558999532679675534}
   - component: {fileID: 1558999532679675535}
-  - component: {fileID: 1558999532679675533}
   - component: {fileID: 7386819036808213216}
   - component: {fileID: 7386819036808213217}
-  - component: {fileID: 2715604795618777549}
+  - component: {fileID: 1431508416029118849}
   m_Layer: 0
   m_Name: paladin_prop_j_nordstrom_withUIs
   m_TagString: Enemy
@@ -2523,20 +2536,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &1558999532679675533
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7386819036808213218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6702839b6a7ff74087ecb26c2b3afad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  health: 100
-  ishitted: 0
 --- !u!195 &7386819036808213216
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2571,10 +2570,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf59c0856c68489458192c6e052fdb43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agent: {fileID: 7386819036808213216}
+  agent: {fileID: 0}
   agentRoadSet: {fileID: 0}
   agentRoadSubSet: {fileID: 0}
   setPoints:
+  - {fileID: 0}
   - {fileID: 0}
   pointSetSize: 1
   nextPoint: 0
@@ -2598,7 +2598,7 @@ MonoBehaviour:
   actionWeight:
   - 2000
   - 2000
---- !u!114 &2715604795618777549
+--- !u!114 &1431508416029118849
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2607,15 +2607,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7386819036808213218}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Script: {fileID: 11500000, guid: cd4b4a5771388aa478fb75380ed9ca6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  outlineMode: 0
-  outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  outlineWidth: 0
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []
+  KnightDamage: {fileID: 779682371862348233}
 --- !u!1 &7388609266889502252
 GameObject:
   m_ObjectHideFlags: 0
