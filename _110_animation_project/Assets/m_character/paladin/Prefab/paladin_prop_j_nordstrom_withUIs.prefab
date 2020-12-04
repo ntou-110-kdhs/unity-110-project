@@ -2576,7 +2576,6 @@ MonoBehaviour:
   agentRoadSubSet: {fileID: 0}
   setPoints:
   - {fileID: 0}
-  - {fileID: 0}
   pointSetSize: 1
   nextPoint: 0
   isSetPoint: 0
@@ -2613,7 +2612,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outlineMode: 0
   outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  outlineWidth: 1
+  outlineWidth: 0
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []

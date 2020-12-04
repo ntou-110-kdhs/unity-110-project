@@ -128,7 +128,7 @@ public class ShadowModule : MonoBehaviour
 
         // 取得 miniMap Controller
         miniMap = FindObjectOfType<MiniMapController>();
-        //miniMap.setBlackPanel(false);
+        miniMap.setBlackPanel(false);
         
         // 取得 enemyManager
         enemyManager = FindObjectOfType<EnemyManager>();        
