@@ -85,6 +85,10 @@ public class FindRoadController : MonoBehaviour
     private bool is_Chased = false;
 
 
+    // 巡邏到位之後是否停頓
+    [SerializeField] private bool is_Stopping = false;
+
+
 
     //GetPointToDo test;
     // Start is called before the first frame update
@@ -313,7 +317,11 @@ public class FindRoadController : MonoBehaviour
                 }
                 isSetPoint = true;
             }
-            agent.SetDestination(setPoints[nextPoint].position);
+            if (!is_Stopping)
+            {
+                agent.SetDestination(setPoints[nextPoint].position);
+            }
+            
             if (transform.position.x == tmpXYZ.x
                 && transform.position.z == tmpXYZ.z
                 && Mathf.Abs(tmpXYZ.y - transform.position.y) < tmpYoffset)
@@ -324,9 +332,30 @@ public class FindRoadController : MonoBehaviour
                 nextPoint++;
                 nextPoint %= pointSetSize;
                 initialPosition = setPoints[nextPoint].position;
+
+                // TODO
+                // 播放 Idle動畫
+                if (!is_Stopping)
+                {
+                    Debug.Log("is Stopping");
+                    Invoke("Idle", 3.0f);
+                    is_Stopping = true;
+                }
+                
             }
 
         }
+    }
+
+    /// <summary>
+    /// 巡邏停頓點  
+    /// </summary>
+    void Idle()
+    {
+        Debug.Log("Idle");
+        is_Stopping = false;
+
+
     }
 
     /// <summary>
@@ -429,11 +458,15 @@ public class FindRoadController : MonoBehaviour
     /// </summary>
     void CheckFinish()
     {
-        Debug.Log("Checking Finish!");
-        is_Running = false;
-        is_Checking = false;
-        checkTarget = null;
-        currentState = MonsterState.RETURN;
+        if(currentState == MonsterState.CHECK)
+        {
+            Debug.Log("Checking Finish!");
+            is_Running = false;
+            is_Checking = false;
+            checkTarget = null;
+            currentState = MonsterState.RETURN;
+        }
+
         
     }
     /// <summary>

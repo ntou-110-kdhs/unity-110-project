@@ -244,7 +244,7 @@ public class ShadowModule : MonoBehaviour
         // 把所有mesh物件關掉/打開
         for (int i = 0; i < meshs.Count; i++)
         {
-            if(meshs[i] == ripple)
+            if(meshs[i] == ripple || meshs[i].tag == "MeshsDisabled")
             {
                 continue;
             }
