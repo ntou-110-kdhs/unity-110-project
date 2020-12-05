@@ -26,9 +26,9 @@ namespace DitzelGames.FastIK
 
             StartDirection = Target.position - transform.position;
             StartRotation = transform.rotation;
-            Debug.Log("Target.position:" + Target.position);
-            Debug.Log("transform.position:" + transform.position);
-            Debug.Log("Target.position - transform.position" + (Target.position - transform.position));
+           // Debug.Log("Target.position:" + Target.position);
+            //Debug.Log("transform.position:" + transform.position);
+            //Debug.Log("Target.position - transform.position" + (Target.position - transform.position));
         }
 
         void LateUpdate()

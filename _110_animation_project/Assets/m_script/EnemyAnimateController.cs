@@ -7,6 +7,11 @@ public class EnemyAnimateController : MonoBehaviour
     [SerializeField]
     private knight_damage_script KnightDamage;     //NPC攻擊傷害(武器上)
 
+    /************戰鬥***********/
+    public bool Isblocking { get { return isblocking; } set { isblocking = value; } }    //角色是否正在防禦
+    private bool isblocking = false;        //角色是否正在防禦
+    /************戰鬥***********/
+
 
     void Start()
     {
@@ -24,7 +29,7 @@ public class EnemyAnimateController : MonoBehaviour
    
     public void attackStart()                           //攻擊開始   能開始傷害
     {
-        Debug.Log("on attack");
+        //Debug.Log("on attack");
         KnightDamage.Attacking();
     }
 

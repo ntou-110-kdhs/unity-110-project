@@ -9,7 +9,7 @@ public class knight_damage_script : MonoBehaviour
     public float damage_status = 1;
     public float damage_dealt = 25;
     HealthSystem player_HS =null;
-    M_TestPlayerController other_PC;        //相當於charecter_movment
+    PlayerController other_PC;        //相當於charecter_movment
 
     private void Start()
     {
@@ -42,38 +42,51 @@ public class knight_damage_script : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("aaa");
+        //Debug.Log("aaa");
 
         if (other.tag == "Player")
         {
-            other_PC = other.GetComponent<M_TestPlayerController>();
-        }
-        /*
-        if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Player") && other_PC.Isparring == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定是否是因阻擋區域造成碰撞   
-        {
-            Debug.Log("parr");
-            other_HC.ishitted = true;
-            other.SendMessageUpwards("got_parr");                   // got_blocked  在HC裡
-
-        }
-        */
-        if (!player_HS.Ishitted && onAttack == true && other.tag.Equals("Player") && other_PC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定是否是因阻擋區域造成碰撞  以及當前是否為防禦中
-        {
+            other_PC = other.GetComponent<PlayerController>();
+            if (!player_HS.Ishitted && onAttack == true && other_PC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定對方角度  以及當前是否為防禦中
+            {
                 Debug.Log("BLOCKED");
-            //Debug.Log("before blocked"+other_HC.ishitted);
-            player_HS.Ishitted = true;
-            //Debug.Log("after blocked" + other_HC.ishitted);
-            other.SendMessageUpwards("got_blocked");                   // got_blocked  在HC裡
+                player_HS.Ishitted = true;
+                player_HS.got_blocked();                // got_blocked  在HC裡
 
+            }
+            else if (!player_HS.Ishitted && onAttack == true)
+            {
+                //Debug.Log("before hit" + other_HC.ishitted);
+                player_HS.Ishitted = true;
+                //Debug.Log("after hit" );
+                player_HS.isDamaged(20);
+            }
         }
-        else if (!player_HS.Ishitted && onAttack == true && other.tag.Equals("Player"))
-        {
-            //Debug.Log("before hit" + other_HC.ishitted);
-            player_HS.Ishitted = true;
-            Debug.Log("after hit" );
-            player_HS.isDamaged(20);
-        }
+
         
+
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            other_PC = other.GetComponent<PlayerController>();
+            if (!player_HS.Ishitted && onAttack == true  && other_PC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE  且判定對方角度  以及當前是否為防禦中
+            {
+                Debug.Log("BLOCKED");
+                player_HS.Ishitted = true;
+                player_HS.got_blocked();                   // got_blocked  在HC裡
+
+            }
+            else if (!player_HS.Ishitted && onAttack == true)
+            {
+                //Debug.Log("before hit" + other_HC.ishitted);
+                player_HS.Ishitted = true;
+                //Debug.Log("after hit" );
+                player_HS.isDamaged(20);
+            }
+        }
 
     }
 

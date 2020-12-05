@@ -8,7 +8,7 @@ public class PlayerAnimateController : MonoBehaviour
     Animator animator;              //設置空的ANIMATOR變數
     AnimatorStateInfo stateinfo;    //當前的ANIMATION
     private ThrowItemsModule throwModule;   //丟東西模組
-    private M_TestPlayerController playerController;   //玩家控制
+    private PlayerController playerController;   //玩家控制
     private Damage_script PlayerDamage;     //玩家攻擊傷害(武器上)
     private Push_Module pushModule;
     private CharacterController charController;
@@ -41,7 +41,7 @@ public class PlayerAnimateController : MonoBehaviour
         //丟東西模組
         throwModule = GetComponent<ThrowItemsModule>();
 
-        playerController = GetComponent<M_TestPlayerController>();
+        playerController = GetComponent<PlayerController>();
 
         PlayerDamage = GetComponentInChildren<Damage_script>();
 
@@ -196,7 +196,7 @@ public class PlayerAnimateController : MonoBehaviour
     }
     public void attackStart()                           //攻擊開始   能開始傷害NPC
     {
-        Debug.Log("on attack");
+       // Debug.Log("on attack");
         PlayerDamage.Attacking();
     }
 
@@ -449,10 +449,13 @@ public class PlayerAnimateController : MonoBehaviour
                 attackEnd();
             }
         }
+        /*
         else
         {
+            Debug.Log("IK");
             EnabledIKInScene();
         }
-        Debug.Log(playerController.Isblocking);
+        */
+        //Debug.Log(playerController.Isblocking);
     }
 }
