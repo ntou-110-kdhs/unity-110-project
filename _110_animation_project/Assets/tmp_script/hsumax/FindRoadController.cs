@@ -313,7 +313,7 @@ public class FindRoadController : MonoBehaviour
                 break;
 
             case MonsterState.ASSASSINATED:
-
+                agent.SetDestination(transform.position);
                 break;
         }
         alertRateCtl();

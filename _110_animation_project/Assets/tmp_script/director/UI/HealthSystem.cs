@@ -34,7 +34,10 @@ public class HealthSystem : MonoBehaviour
     void Update()
     {
         setImageHpFadeBar();
-
+        if (hp==0)
+        {
+            Invoke("isKilled", 1f);
+        }
 
         if(lookAtTarget != null)
         {
@@ -145,5 +148,15 @@ public class HealthSystem : MonoBehaviour
         Invoke("reset_hitted", 0.5f);
     }
 
+    /// <summary>
+    /// HP歸0 死亡
+    /// </summary>
+    public void isKilled()
+    {
+        if (this.transform.parent.parent.tag == "Enemy")
+        {
+            this.transform.parent.transform.gameObject.SetActive(false);
+        }
+    }
 
 }

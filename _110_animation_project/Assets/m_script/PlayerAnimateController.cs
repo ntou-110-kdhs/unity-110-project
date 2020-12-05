@@ -13,6 +13,7 @@ public class PlayerAnimateController : MonoBehaviour
     private Push_Module pushModule;
     private CharacterController charController;
     private ShadowModule shadowModule;
+    private AssassinModule assassinModule;
     public float forward = 0;
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
@@ -48,6 +49,7 @@ public class PlayerAnimateController : MonoBehaviour
         pushModule = GetComponent<Push_Module>();
         charController = GetComponent<CharacterController>();
         shadowModule = GetComponent<ShadowModule>();
+        assassinModule = GetComponent<AssassinModule>();
     }
     /***********IK動畫***********/
 
@@ -368,17 +370,23 @@ public class PlayerAnimateController : MonoBehaviour
 
         if (Input.GetMouseButton(0))        //左鍵 TRIGGER
         {
-            if (throwModule.IsTakingAim)
+            //防止單次點擊 造成2次攻擊TRIGGER
+            if (Time.time - TimeOffSet >= 0.2)
             {
-                animator.SetTrigger("throw_item");
-            }
-            else if(!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded))
-            {
-                //防止單次點擊 造成2次攻擊TRIGGER
-                if (Time.time - TimeOffSet >= 0.2)
+                TimeOffSet = Time.time;
+                if (assassinModule.CanAssassinate)
                 {
-                    TimeOffSet = Time.time;
-                    animator.SetTrigger("Attacking");
+                    assassinModule.assassinReady();
+                    animator.Play("Assassin");
+                }
+                else if (throwModule.IsTakingAim)
+                {
+                    animator.SetTrigger("throw_item");
+                }
+                else if(!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded))
+                {
+
+                        animator.SetTrigger("Attacking");
                 }
             }
 
