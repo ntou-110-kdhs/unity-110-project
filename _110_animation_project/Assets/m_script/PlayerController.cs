@@ -45,6 +45,10 @@ public class PlayerController : MonoBehaviour
     private bool isblocking = false;        //角色是否正在防禦
     /************戰鬥***********/
 
+    /************暗殺***********/
+    private AssassinModule assassinModule = null;
+    /************暗殺***********/
+
     /**********物理性質*********/
     [SerializeField] private float charSpeed = 6.0f;
     [SerializeField] private float charJumpSpeed = 8.0f;
@@ -122,6 +126,10 @@ public class PlayerController : MonoBehaviour
         }
 
 
+        // 取得暗殺模組
+        assassinModule = GetComponent<AssassinModule>();
+
+
     }
     // Update is called once per frame
     void Update()
@@ -193,6 +201,10 @@ public class PlayerController : MonoBehaviour
             pushModule.dragMove();
         }
         else if (throwModule.IsTakingAim)
+        {
+
+        }
+        else if (assassinModule.IsAssassinReady)
         {
 
         }
