@@ -3770,6 +3770,8 @@ GameObject:
   - component: {fileID: 6016161374622777833}
   - component: {fileID: 6016161374622777834}
   - component: {fileID: 1561826784994577381}
+  - component: {fileID: 160901031895121184}
+  - component: {fileID: 3899617807015407988}
   m_Layer: 0
   m_Name: kachujin_g_rosales
   m_TagString: Player
@@ -3957,6 +3959,32 @@ MonoBehaviour:
   freeLookCam: {fileID: 0}
   headPosition: {fileID: 0}
   camFor: {x: 0, y: 0, z: 0}
+--- !u!65 &160901031895121184
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6016161375371585887}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.2, y: 0.85, z: 0.6}
+  m_Center: {x: 0.025639474, y: 1.3, z: 0.73458576}
+--- !u!114 &3899617807015407988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6016161375371585887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57a977d7617c6004aa48028b888013c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canAssassinate: 0
 --- !u!1 &6016161375398831428
 GameObject:
   m_ObjectHideFlags: 0

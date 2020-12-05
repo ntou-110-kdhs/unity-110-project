@@ -60,7 +60,8 @@ public class FindRoadController : MonoBehaviour
         //WALK,       //移动
         WARN,       //盯着玩家
         CHASE,      //追击玩家
-        RETURN      //超出追击范围后返回
+        RETURN,      //超出追击范围后返回
+        ASSASSINATED
     }
     
     //public enum monsterState
@@ -310,6 +311,10 @@ public class FindRoadController : MonoBehaviour
                 EnemyDistanceCheck();
                 ReturnCheck();
                 break;
+
+            case MonsterState.ASSASSINATED:
+
+                break;
         }
         alertRateCtl();
     }
@@ -352,7 +357,6 @@ public class FindRoadController : MonoBehaviour
                 nextPoint++;
                 nextPoint %= pointSetSize;
                 initialPosition = setPoints[nextPoint].position;
-
                 if (!is_Stopping)
                 {
                     
@@ -361,10 +365,8 @@ public class FindRoadController : MonoBehaviour
                     enemyAC.knightNotRunning();
                     Invoke("Idle", 3.0f);
                     is_Stopping = true;
-                }
-                
+                }                
             }
-
         }
     }
 
@@ -715,5 +717,14 @@ public class FindRoadController : MonoBehaviour
         {
             checkTarget = target;
         }        
+    }
+
+
+    /// <summary>
+    /// 被暗殺
+    /// </summary>
+    public void Assassinated()
+    {
+        currentState = MonsterState.ASSASSINATED;
     }
 }

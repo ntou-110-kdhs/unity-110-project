@@ -60,11 +60,16 @@ public class AssassinModule : MonoBehaviour
 
             transform.position = assassinTarget.position + offset;
             transform.forward = assassinTarget.forward;
+            assassinTarget.GetComponent<FindRoadController>().Assassinated();
             isAssassinReady = true;            
         }
     }
 
 
+    /// <summary>
+    /// 暗殺完成
+    /// 把敵人的血扣光 死亡
+    /// </summary>
     public void assassinFinish()
     {
         isAssassinReady = false;
