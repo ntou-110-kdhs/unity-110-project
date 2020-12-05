@@ -8,9 +8,10 @@ public class HealthSystem : MonoBehaviour
     // 取得血條&褪去條的物件
     private Image bar = null;
     private Image fadeBar = null;
+    /********戰鬥狀態********/
     private bool ishitted = false;
-    public bool Ishitted { get { return ishitted; } set { ishitted = value; } }    //角色是否可以被傷害
-
+    public bool Ishitted { get { return ishitted; } set { ishitted = value; } }    //角色是否可以被擊中
+    /********戰鬥狀態********/
     // 設定最大血量
     [SerializeField] private float maxHp = 0;
     // 血量
@@ -125,10 +126,23 @@ public class HealthSystem : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// 重置角色是否可被擊中的判定
+    /// </summary>
     void reset_hitted()
     {
         Ishitted = false;
+    }
+
+    /// <summary>
+    /// 角色成功防禦
+    /// </summary>
+    public void got_blocked()
+    {
+        //gameObject.BroadcastMessage("spark_effect_control_active");                                    //在handsword中
+        //if (this.tag == ("enimy")) animator.Play("block_shaking_left");                                  //成功防禦動畫
+        //if (this.tag == ("Player")) animator.Play("blocking_shake_right");
+        Invoke("reset_hitted", 0.5f);
     }
 
 

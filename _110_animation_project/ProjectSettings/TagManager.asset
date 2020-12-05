@@ -11,6 +11,7 @@ TagManager:
   - Crossbow_Target
   - Fire
   - Enemy
+  - MeshsDisabled
   layers:
   - Default
   - TransparentFX

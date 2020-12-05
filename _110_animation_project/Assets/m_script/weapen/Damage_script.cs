@@ -7,7 +7,8 @@ public class Damage_script : MonoBehaviour
     public bool onAttack = false;
     public float damage_status = 1;
     public float damage_dealt = 25;
-    HeathControl other_HC;
+    HealthSystem npc_HS;
+    EnemyAnimateController npc_EnemyAC;
     public void Attacking()             //在CM中的call_attacking
     {
         onAttack = true;
@@ -38,20 +39,48 @@ public class Damage_script : MonoBehaviour
         if (other.tag == "Enemy")
         {
             
-            if (other.tag == "Enemy")
+            npc_HS = other.GetComponentInChildren<HealthSystem>();
+            npc_EnemyAC = other.GetComponentInChildren<EnemyAnimateController>();
+            if (!npc_HS.Ishitted && onAttack == true && npc_EnemyAC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定對方角度  以及當前是否為防禦中
             {
-                other_HC = other.GetComponentInChildren<HeathControl>();
-            }
+                Debug.Log("BLOCKED");
+                npc_HS.Ishitted = true;
+                npc_HS.got_blocked();                // got_blocked  在HC裡
 
-            if (!other_HC.ishitted && onAttack == true && other.tag.Equals("Enemy"))
+            }
+            else if (!npc_HS.Ishitted && onAttack == true)
             {
                 //Debug.Log("before hit" + other_HC.ishitted);
-                other_HC.ishitted = true;
-                //Debug.Log("after hit" + other_HC.ishitted);
-                other.BroadcastMessage("got_hit");
+                npc_HS.Ishitted = true;
+                //Debug.Log("after hit" );
+                npc_HS.isDamaged(20);
             }
         }
 
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag == "Enemy")
+        {
+
+            npc_HS = other.GetComponentInChildren<HealthSystem>();
+            npc_EnemyAC = other.GetComponentInChildren<EnemyAnimateController>();
+            if (!npc_HS.Ishitted && onAttack == true && npc_EnemyAC.Isblocking == true && getangle(other.transform) == 1)       //阻擋後對方的ishitted轉為TRUE 且判定對方角度  以及當前是否為防禦中
+            {
+                Debug.Log("BLOCKED");
+                npc_HS.Ishitted = true;
+                npc_HS.got_blocked();                // got_blocked  在HC裡
+
+            }
+            else if (!npc_HS.Ishitted && onAttack == true)
+            {
+                //Debug.Log("before hit" + other_HC.ishitted);
+                npc_HS.Ishitted = true;
+                //Debug.Log("after hit" );
+                npc_HS.isDamaged(20);
+            }
+        }
     }
 
 }
