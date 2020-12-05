@@ -8,6 +8,7 @@ public class FindRoadController : MonoBehaviour
 {
     private Transform target;//target to follow
     private Transform checkTarget;//target to follow
+    private EnemyAnimateController enemyAC; 
     [SerializeField] private NavMeshAgent agent;
     //private Ray rayToTarget;
     private RaycastHit hitInfo;
@@ -96,7 +97,7 @@ public class FindRoadController : MonoBehaviour
     {
         target = GameObject.FindGameObjectWithTag("Player").transform;
         agent = GetComponent<NavMeshAgent>();
-
+        enemyAC = GetComponent<EnemyAnimateController>();
         //检查并修正怪物设置
         //1. 自卫半径不大于警戒半径，否则就无法触发警戒状态，直接开始追击了
         defendRadius = Mathf.Min(alertRadius, defendRadius);
@@ -160,7 +161,18 @@ public class FindRoadController : MonoBehaviour
                 {
                     RandomAction();         //随机切换指令
                 }
+
+                if (!is_Stopping)
+                {
+                    enemyAC.knightNotEngage();
+                    enemyAC.knightRunning();
+                }
+
+
                 StandPatrol();
+
+                
+
 
                 iconManager.setIcon(0);
                 iconManager.setIconRate(0);
@@ -171,7 +183,9 @@ public class FindRoadController : MonoBehaviour
                 break;
 
             //待机状态，由于观察动画时间较长，并希望动画完整播放，故等待时间是根据一个完整动画的播放长度，而不是指令间隔时间
-            case MonsterState.CHECK:                
+            case MonsterState.CHECK:
+                enemyAC.knightNotEngage();
+                enemyAC.knightRunning();
                 //agent.stoppingDistance = 0f;
                 agent.updateRotation = true;
 
@@ -224,6 +238,8 @@ public class FindRoadController : MonoBehaviour
                 if (!is_Warned)
                 {
                     is_Warned = true;
+                    enemyAC.knightNotEngage();
+                    enemyAC.knightRunning();
                 }
                 targetDirect = target.transform.position - transform.position;
                 targetDirect.y = 0.0f;
@@ -252,6 +268,8 @@ public class FindRoadController : MonoBehaviour
                 if (!is_Running)
                 {
                     is_Running = true;
+                    enemyAC.knightEngageAnimation();
+                    enemyAC.knightRunning();
                 }
                 targetDirect = target.transform.position - transform.position;
                 targetDirect.y = 0.0f;
@@ -274,6 +292,8 @@ public class FindRoadController : MonoBehaviour
 
             //返回状态，超出追击范围后返回出生位置
             case MonsterState.RETURN:
+                enemyAC.knightNotEngage();
+                enemyAC.knightRunning();
                 //朝向初始位置移动
                 //targetDirect = initialPosition - transform.position;
                 //targetDirect.y = 0.0f;
@@ -333,11 +353,12 @@ public class FindRoadController : MonoBehaviour
                 nextPoint %= pointSetSize;
                 initialPosition = setPoints[nextPoint].position;
 
-                // TODO
-                // 播放 Idle動畫
                 if (!is_Stopping)
                 {
+                    
                     Debug.Log("is Stopping");
+                    enemyAC.knightIdle();
+                    enemyAC.knightNotRunning();
                     Invoke("Idle", 3.0f);
                     is_Stopping = true;
                 }
@@ -353,6 +374,8 @@ public class FindRoadController : MonoBehaviour
     void Idle()
     {
         Debug.Log("Idle");
+        enemyAC.knightNotIdle();
+        enemyAC.knightRunning();
         is_Stopping = false;
 
 

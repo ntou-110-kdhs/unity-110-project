@@ -54,6 +54,7 @@ public class Damage_script : MonoBehaviour
                 npc_HS.Ishitted = true;
                 //Debug.Log("after hit" );
                 npc_HS.isDamaged(20);
+                npc_EnemyAC.knightIsDamage();
             }
         }
 
@@ -79,6 +80,7 @@ public class Damage_script : MonoBehaviour
                 npc_HS.Ishitted = true;
                 //Debug.Log("after hit" );
                 npc_HS.isDamaged(20);
+                npc_EnemyAC.knightIsDamage();
             }
         }
     }
