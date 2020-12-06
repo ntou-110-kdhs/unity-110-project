@@ -1102,7 +1102,7 @@ GameObject:
   - component: {fileID: 6016161375190455693}
   m_Layer: 0
   m_Name: Crossbow_in_hand
-  m_TagString: Untagged
+  m_TagString: MeshsDisabled
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1338,7 +1338,7 @@ GameObject:
   - component: {fileID: 6016161375345562156}
   m_Layer: 0
   m_Name: Crossbow_on_side
-  m_TagString: MeshsDisabled
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
