@@ -131,7 +131,7 @@ public class PlayerController : MonoBehaviour
 
 
         // 取得暗殺模組
-        assassinModule = GetComponent<AssassinModule>();
+        assassinModule = GetComponentInChildren<AssassinModule>();
 
 
     }
@@ -326,24 +326,15 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// 刺殺
-    /// </summary>
-    public void assassinate()
+    
+    public void assassinReady()
     {
-        //if (inShadow)
-        //{
-        //    if(Target.tag == "monster")
-        //    {
-        //    }
-        //    else if (Target.tage == "boss")
-        //    {
-        //    }
-        //}
-        //// 一般暗殺
-        //else
-        //{
-        //}
+        assassinModule.assassinReady();
+    }
+
+    public void assassinFinish()
+    {
+        assassinModule.assassinFinish();
     }
 
     /// <summary>

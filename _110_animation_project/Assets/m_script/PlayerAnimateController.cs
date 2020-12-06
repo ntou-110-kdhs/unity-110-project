@@ -51,7 +51,7 @@ public class PlayerAnimateController : MonoBehaviour
         pushModule = GetComponent<Push_Module>();
         charController = GetComponent<CharacterController>();
         shadowModule = GetComponent<ShadowModule>();
-        assassinModule = GetComponent<AssassinModule>();
+        assassinModule = GetComponentInChildren<AssassinModule>();
     }
     /***********IK動畫***********/
 

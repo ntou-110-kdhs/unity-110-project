@@ -87,9 +87,11 @@ public class Push_Module : MonoBehaviour
         /**********推移物品*********/
         if (Physics.Raycast(rayObject, out hit, 1.75f))
         {
+            Debug.Log(hit.transform.gameObject.name);
             //擊中Movable物件 且在地面 且目前沒有推動物件 且不在影子狀態中 才可以推動物體
             if (hit.transform.GetComponent<FixedJoint>() != null)       //當物體有FixedJoint時
             {
+                Debug.Log("asdad");
                 if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && !isPushingObject && !shadowModule.IsShadowing && !playerController.IsShooting && !throwModule.IsTakingAim)
                 {
                     //更改角色的面向  以及位置
