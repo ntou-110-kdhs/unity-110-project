@@ -20,17 +20,23 @@ public class AssassinModule : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {   
+        /*
         if (canAssassinate && Input.GetMouseButtonDown(0))
         {
             assassinReady();
-        }
+        }*/
     }
 
     void FixedUpdate()
     {
         canAssassinate = false;
-        assassinTarget = null;
+
+        if (!isAssassinReady)
+        {
+            assassinTarget = null;
+        }
+        
     }
 
 
@@ -56,11 +62,12 @@ public class AssassinModule : MonoBehaviour
     {
         if(assassinTarget != null)
         {
-            Vector3 offset = -assassinTarget.forward;
+            Vector3 offset = -assassinTarget.forward*2;
 
             transform.position = assassinTarget.position + offset;
             transform.forward = assassinTarget.forward;
             assassinTarget.GetComponent<FindRoadController>().Assassinated();
+            assassinTarget.GetComponent<EnemyAnimateController>().knightAssassinated();
             isAssassinReady = true;            
         }
     }

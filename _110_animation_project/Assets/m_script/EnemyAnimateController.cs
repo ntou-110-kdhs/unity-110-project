@@ -50,6 +50,25 @@ public class EnemyAnimateController : MonoBehaviour
 
     /***********攻擊動畫***********/
 
+    /***********被暗殺動畫***********/
+    /// <summary>
+    /// NPC被暗殺
+    /// </summary>
+    public void knightAssassinated()
+    {
+        knightAnimator.Play("paladin_Assassinated");
+    }
+    public void knightAssassinatedEnd()
+    {
+        this.GetComponent<CharacterController>().enabled = false;
+        this.GetComponent<EnemyAnimateController>().enabled = false;
+        this.GetComponent<Animator>().enabled = false;
+        this.GetComponent<FindRoadController>().enabled = false;
+        this.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
+        this.GetComponent<Outline>().enabled = false;
+    }
+    /***********被暗殺動畫***********/
+
     /***********狀態設定***********/
     /// <summary>
     /// 使NPC進入追擊動畫
