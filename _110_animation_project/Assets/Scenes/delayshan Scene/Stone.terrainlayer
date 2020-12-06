@@ -6,15 +6,15 @@ TerrainLayer:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Snow
-  m_DiffuseTexture: {fileID: 2800000, guid: c856b36f279921443800ca1caef5b962, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 82dd3434789a6464a9a6ea7c0b3c174b, type: 3}
-  m_MaskMapTexture: {fileID: 2800000, guid: e70982684a9e5d74a95253b1cb6f6493, type: 3}
+  m_Name: Stone
+  m_DiffuseTexture: {fileID: 2800000, guid: 288851ae70119724a8d57f92cae5be4d, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 7cf9689c085d69642bc5b3f8c972735d, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: dd23d5d8bfa40df47be908e5202f21ca, type: 3}
   m_TileSize: {x: 2, y: 2}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
   m_Metallic: 0
-  m_Smoothness: 0.9
+  m_Smoothness: 1
   m_NormalScale: 1
   m_DiffuseRemapMin: {x: 0, y: 0, z: 0, w: 0}
   m_DiffuseRemapMax: {x: 1, y: 1, z: 1, w: 1}

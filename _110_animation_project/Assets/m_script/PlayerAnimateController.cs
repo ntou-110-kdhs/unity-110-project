@@ -467,7 +467,7 @@ public class PlayerAnimateController : MonoBehaviour
                 if (!stateinfo.IsName("kachujin_jump_Idle")){
                     animator.Play("kachujin_jump_Idle");
                 }
-                if(playerController.MoveDirection.y <= -10.0)
+                if(playerController.MoveDirection.y <= -15.0)
                 {
                     animator.SetTrigger("fall_roll");
                 }
