@@ -18,6 +18,8 @@ public class PlayerAnimateController : MonoBehaviour
     float right = 0;
     float idletime = -10f;          //空閒一段時間  才會設置IDLE TRIGGER
     float TimeOffSet = -10;   //連擊判定
+    float fallingTimeOffSet = -10;   //掉落時間判定
+    float jumpTimeOffSet = -10;   //跳躍時間判定
     float speed = 6;                     //移動攻擊時滑動距離
     [SerializeField]
     private Transform RightHandTarget;
@@ -219,7 +221,7 @@ public class PlayerAnimateController : MonoBehaviour
     {
 
         Vector3 moveDirection = transform.forward;
-        moveDirection.y -= 20 * Time.deltaTime;
+        //moveDirection.y -= 20 * Time.deltaTime;
         moveDirection *= speed/2;
         if (speed > 0.1) speed -= 0.1f;
         this.GetComponent<CharacterController>().Move(moveDirection * Time.deltaTime);
@@ -246,7 +248,7 @@ public class PlayerAnimateController : MonoBehaviour
         animator.ResetTrigger("Idle");
         animator.ResetTrigger("walking");
         animator.ResetTrigger("Attacking");
-        animator.ResetTrigger("jump");
+        //animator.ResetTrigger("jump");
         animator.ResetTrigger("throw_item");
         //animator.ResetTrigger("throw_item_start");
     }
@@ -261,6 +263,14 @@ public class PlayerAnimateController : MonoBehaviour
 
             animator.SetIKPosition(AvatarIKGoal.RightHand, RightHandTarget.position);
         }
+    }
+
+    /// <summary>
+    /// 跳耀時 延遲使用跳躍停滯動畫
+    /// </summary>
+    public void jumpSetTime()
+    {
+        //fallingTimeOffSet = Time.time+0.2f;
     }
 
 
@@ -419,12 +429,19 @@ public class PlayerAnimateController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space))    //空白建 跳躍
         {
-            animator.SetTrigger("jump");
+            if(Time.time- jumpTimeOffSet >= 0.74f)
+            {
+                Debug.Log("ADASD");
+                if (stateinfo.IsName("walking"))
+                {
+                    animator.Play("kachujin_jump");
+                }
+                animator.SetTrigger("jump");
+                jumpTimeOffSet = Time.time;
+            }
+            
         }
-        else
-        {
-            animator.ResetTrigger("jump");
-        }
+
 
         if (!Input.anyKey)          //沒點擊 也沒按按鍵
         {
@@ -435,8 +452,28 @@ public class PlayerAnimateController : MonoBehaviour
             idletime = Time.time;                                                     //紀錄IDLE 當下的時間
         }
 
+        if (charController.isGrounded)
+        {
 
-
+            animator.SetBool("falling", false);
+            //fallingTimeOffSet = Time.time;
+        }
+        else
+        {
+            
+            animator.SetBool("falling", true);
+            if (playerController.MoveDirection.y <= -8.0)
+            {
+                if (!stateinfo.IsName("kachujin_jump_Idle")){
+                    animator.Play("kachujin_jump_Idle");
+                }
+                if(playerController.MoveDirection.y <= -10.0)
+                {
+                    animator.SetTrigger("fall_roll");
+                }
+            }
+        }
+        //Debug.Log("FALL= " + playerController.MoveDirection.y);
     }
     void LateUpdate()
     {

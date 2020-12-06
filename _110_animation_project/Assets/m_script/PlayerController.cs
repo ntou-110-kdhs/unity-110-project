@@ -60,6 +60,8 @@ public class PlayerController : MonoBehaviour
 
     //人物移動方向
     private Vector3 moveDirection = Vector3.zero;
+    public Vector3 MoveDirection { get { return moveDirection; } set { moveDirection = value; } }
+
     ////人物碰撞體
     //private Collider charCollider;
     //人物轉向(目標)向量
@@ -76,6 +78,8 @@ public class PlayerController : MonoBehaviour
     private float mouseX;
     //滑鼠垂直(Y軸)移動
     private float mouseY;
+    //跳躍間隔
+    float jumpTimeOffSet = -10;
     /********鍵鼠操控變數*******/
 
 
@@ -185,6 +189,8 @@ public class PlayerController : MonoBehaviour
         if (!isMovable)
         {
             //不可移動時
+            /*moveDirection.y -= gravity * Time.deltaTime;
+            charController.Move(moveDirection * Time.deltaTime);*/
         }
         else if (shadowModule.IsShadowing)
         {
@@ -257,7 +263,13 @@ public class PlayerController : MonoBehaviour
             //按空白鍵時啟動
             if (Input.GetButton("Jump"))
             {
-                moveDirection.y = charJumpSpeed;
+                if (Time.time - jumpTimeOffSet >= 0.75)
+                {
+                    jumpTimeOffSet = Time.time;
+                    moveDirection.y = charJumpSpeed;
+                }
+
+                
             }
         }
 
