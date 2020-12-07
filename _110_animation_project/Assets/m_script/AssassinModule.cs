@@ -10,7 +10,7 @@ public class AssassinModule : MonoBehaviour
 
     private Transform assassinTarget = null;
 
-    private bool isAssassinReady = false;
+    [SerializeField]  private bool isAssassinReady = false;
     public bool IsAssassinReady { get { return isAssassinReady; } set { isAssassinReady = value; } }
     // Start is called before the first frame update
     void Start()
@@ -62,10 +62,10 @@ public class AssassinModule : MonoBehaviour
     {
         if(assassinTarget != null)
         {
-            Vector3 offset = -assassinTarget.forward*2;
+            Vector3 offset = -assassinTarget.forward * 2;
 
-            transform.position = assassinTarget.position + offset;
-            transform.forward = assassinTarget.forward;
+            transform.parent.position = assassinTarget.position + offset;
+            transform.parent.forward = assassinTarget.forward;
             assassinTarget.GetComponent<FindRoadController>().Assassinated();
             assassinTarget.GetComponent<EnemyAnimateController>().knightAssassinated();
             isAssassinReady = true;            
