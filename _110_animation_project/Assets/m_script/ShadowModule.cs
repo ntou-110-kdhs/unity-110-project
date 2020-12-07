@@ -25,9 +25,9 @@ public class ShadowModule : MonoBehaviour
     [SerializeField] private bool isInShadow = false;
     public bool IsInShadow { get { return isInShadow; } }
     //光源的陣列
-    private List<GameObject> lights = new List<GameObject>();
+    [SerializeField] private List<GameObject> lights = new List<GameObject>();
     //一個光源對一個物件所製造出的影子  陣列
-    private Dictionary<GameObject, GameObject> lightsWithShadows = new Dictionary<GameObject, GameObject>();
+    [SerializeField] private Dictionary<GameObject, GameObject> lightsWithShadows = new Dictionary<GameObject, GameObject>();
     /**********影子偵測*********/
 
 
@@ -56,7 +56,8 @@ public class ShadowModule : MonoBehaviour
     private int shadowOutCount = 0;
     private bool isInAir = false;
     private bool isWall = false;
-    private bool isLighted = false; 
+    [SerializeField] private bool isLighted = false;
+    public bool IsLighted { get { return isLighted; } set { isLighted = value; } }
     /**********影子邊界*********/
     private Vector3 dir = Vector3.zero;
     private Transform shadowOwner;
@@ -137,10 +138,23 @@ public class ShadowModule : MonoBehaviour
 
     }
 
+    void FixedUpdate()
+    {
+        isLighted = false;
+    }
+
+    void LateUpdate()
+    {
+        if(isShadowing && (isLighted || isInShadow))
+        {
+            //shadowPos = transform.position;
+        }
+        
+    }
     // Update is called once per frame
     void Update()
     {
-        if(isShadowing && ppv.weight < 1)
+       /* if(isShadowing && ppv.weight < 1)
         {
             ppv.weight += Time.deltaTime;
             if (ppv.weight > 1)
@@ -155,13 +169,7 @@ public class ShadowModule : MonoBehaviour
             {
                 ppv.weight = 0;
             }
-        }
-
-
-        if (isShadowing)
-        {
-            printWhatShadowsIn();
-        }
+        }*/
     }
 
     /// <summary>
@@ -295,7 +303,7 @@ public class ShadowModule : MonoBehaviour
             setShadowsGameObject();
         }
 
-        shadowObjectLocalPos();
+        //shadowObjectLocalPos();
         //水平鍵(A,D)有按與否
         inputHor = Input.GetAxis("Horizontal");
         //垂直鍵(W,S)有按與否
@@ -346,19 +354,15 @@ public class ShadowModule : MonoBehaviour
             moveDirection.y -= gravity * Time.deltaTime;
         }*/
 
-
         // 影子邊界 
-        if (!isInShadow && shadowMoveDir == Vector3.zero)
+        if ((!isInShadow || isLighted) && shadowMoveDir == Vector3.zero)
         {
-            if (!isInShadow && shadowMoveDir == Vector3.zero)
-            {
-                transform.position = shadowPos + dir;
-            }
-
+            transform.position = shadowPos;
 
         }
         else
         {
+            shadowPos = transform.position;
             charController.Move(moveDirection * Time.deltaTime);
         }
 
@@ -374,7 +378,7 @@ public class ShadowModule : MonoBehaviour
         }
 
         //退出影子條件       
-        if (isShadowing && /*!isInShadow || */shadowOutCount >= 20 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
+        if (isShadowing && /*!isInShadow || */shadowOutCount >= 50 /*|| (!isClimbing && (!charController.isGrounded && !isWall))*/ || Input.GetKeyDown(KeyCode.E))
         {
 
             shadowOutCount = 0;
@@ -382,6 +386,7 @@ public class ShadowModule : MonoBehaviour
             gravity = 20;
             DelayCount = Time.time;
         }
+        
     }
 
     /// <summary>
@@ -656,10 +661,16 @@ public class ShadowModule : MonoBehaviour
     /// 偵測人物在哪個影子內
     /// </summary>
     public void shadowDetect()
-    {
+    {        
         isInShadow = false;
         Vector3 playerPos = transform.position;
-        playerPos.y += 0.5f;
+
+        float offset = 1.0f;
+        if (isShadowing)
+        {
+            offset = 0.2f;
+        }
+        playerPos += transform.up * offset;
         for (int i = 0; i < lights.Count; i++)
         {
             float distance = 0.0f;
@@ -684,7 +695,7 @@ public class ShadowModule : MonoBehaviour
 
                 // 光線擋到物體不可以是玩家
                 if (Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
-                {
+                {                    
                     //Debug.Log("Directional light make you in shadow");
                     if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                     {
@@ -705,23 +716,32 @@ public class ShadowModule : MonoBehaviour
                 {
                     Ray ray = new Ray(lights[i].transform.position, (playerPos - lights[i].transform.position));
                     RaycastHit hit;
-                    Debug.DrawRay(ray.origin, ray.direction, Color.red);
-                    //Debug.Log("SpotLight");
+
+                    Debug.DrawLine(ray.origin, ray.origin + ray.direction * distance, Color.red);
                     // 判定有沒有在光線範圍內
                     // 判定光線有沒被物體檔到
                     // 光線擋到物體不可以是玩家
-                    if (distance <= lightCompnent.range && Physics.Raycast(ray, out hit, distance))
+                    if (distance <= lightCompnent.range)
                     {
-                        if(hit.transform == transform)
+                        if (Physics.Raycast(ray, out hit, distance))
                         {
-                            isLighted = true;
-                            return;
-                        }
-                        if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
-                        {
-                            lightsWithShadows[lights[i]] = hit.transform.gameObject;
-                        }
-                        isInShadow = true;
+                            
+                           
+                            if (hit.transform == transform)
+                            {
+
+                                isLighted = true;
+                            }
+                            else if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
+                            {
+                                lightsWithShadows[lights[i]] = hit.transform.gameObject;
+                            }
+
+                            if (!isLighted)
+                            {
+                                isInShadow = true;
+                            }
+                        }                                               
                     }
                     else
                     {
@@ -735,13 +755,18 @@ public class ShadowModule : MonoBehaviour
                     Ray ray = new Ray(lights[i].transform.position, (playerPos - lights[i].transform.position));
                     RaycastHit hit;
                     Debug.DrawRay(ray.origin, ray.direction, Color.red);
-                    Vector3 dir = playerPos - lights[i].transform.position;
+                    Vector3 dir = (playerPos - lights[i].transform.position) * 2f;
                     float angle = Vector3.Angle(dir, lights[i].transform.forward);
                     // 判定有沒有在光線範圍內
                     // 判定光線有沒有被物體檔到
                     // 光線擋到物體不可以是玩家
-                    if (distance <= lightCompnent.range && angle <= lightCompnent.spotAngle / 2 && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
+                    if (distance <= lightCompnent.range && angle <= lightCompnent.spotAngle / 2 && Physics.Raycast(ray, out hit, distance))
                     {
+                        if (hit.transform == transform)
+                        {
+                            isLighted = true;
+                            return;
+                        }
                         //Debug.Log("Spot light make you in shadow");
                         if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                         {
@@ -757,6 +782,9 @@ public class ShadowModule : MonoBehaviour
             }
             //Debug.Log(lights[i].name);
         }
+
+
+
     }
     /// <summary>
     /// 找出所有在場景的光源
@@ -842,7 +870,7 @@ public class ShadowModule : MonoBehaviour
 
         }
         Ray ray = new Ray(shadowOwner.position, shadowOwner.position - lightPos);
-        Debug.DrawRay(ray.origin, ray.direction, Color.red);
+        //Debug.DrawRay(ray.origin, ray.direction, Color.red);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, dis))
         {
@@ -854,9 +882,10 @@ public class ShadowModule : MonoBehaviour
             }
 
         }
-        if (isInShadow)
+        if (isInShadow || !isLighted)
         {
-            dir = transform.position - shadowPos;
+            Debug.Log(isLighted);
+            dir = transform.position - shadowPos;            
         }
 
     }
