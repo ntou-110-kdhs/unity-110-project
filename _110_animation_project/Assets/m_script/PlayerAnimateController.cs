@@ -396,7 +396,7 @@ public class PlayerAnimateController : MonoBehaviour
                 else if(!(pushModule.IsPushingObject || shadowModule.IsShadowing || !charController.isGrounded))
                 {
 
-                        animator.SetTrigger("Attacking");
+                        //animator.SetTrigger("Attacking");
                 }
             }
 

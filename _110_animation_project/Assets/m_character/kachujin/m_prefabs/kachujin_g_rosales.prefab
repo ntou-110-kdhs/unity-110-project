@@ -378,7 +378,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6014907510055635387}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1240,7 +1240,7 @@ GameObject:
   - component: {fileID: 6016161375190455695}
   m_Layer: 0
   m_Name: Arrow_Small
-  m_TagString: Untagged
+  m_TagString: MeshsDisabled
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4483,7 +4483,7 @@ GameObject:
   - component: {fileID: 6016161375777957502}
   m_Layer: 0
   m_Name: Crossbow_rope_start
-  m_TagString: Untagged
+  m_TagString: MeshsDisabled
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
