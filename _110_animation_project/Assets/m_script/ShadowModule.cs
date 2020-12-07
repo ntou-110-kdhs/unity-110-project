@@ -56,6 +56,7 @@ public class ShadowModule : MonoBehaviour
     private int shadowOutCount = 0;
     private bool isInAir = false;
     private bool isWall = false;
+    private bool isLighted = false; 
     /**********影子邊界*********/
     private Vector3 dir = Vector3.zero;
     private Transform shadowOwner;
@@ -154,6 +155,12 @@ public class ShadowModule : MonoBehaviour
             {
                 ppv.weight = 0;
             }
+        }
+
+
+        if (isShadowing)
+        {
+            printWhatShadowsIn();
         }
     }
 
@@ -703,8 +710,13 @@ public class ShadowModule : MonoBehaviour
                     // 判定有沒有在光線範圍內
                     // 判定光線有沒被物體檔到
                     // 光線擋到物體不可以是玩家
-                    if (distance <= lightCompnent.range && Physics.Raycast(ray, out hit, distance) && hit.transform != transform)
+                    if (distance <= lightCompnent.range && Physics.Raycast(ray, out hit, distance))
                     {
+                        if(hit.transform == transform)
+                        {
+                            isLighted = true;
+                            return;
+                        }
                         if (lightsWithShadows[lights[i]] != hit.transform.gameObject)
                         {
                             lightsWithShadows[lights[i]] = hit.transform.gameObject;
@@ -714,6 +726,7 @@ public class ShadowModule : MonoBehaviour
                     else
                     {
                         lightsWithShadows[lights[i]] = null;
+                        
                     }
                 }
                 // Spot light 的判定 

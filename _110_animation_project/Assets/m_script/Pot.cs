@@ -45,16 +45,26 @@ public class Pot : MonoBehaviour
 
         if (type == "fire")
         {
-            Vector3 firePosition = transform.position;
-            firePosition.y -= 0.5f;
-
-            // 火焰
-            GameObject prefab = Instantiate(firePartical, firePosition, firePartical.transform.rotation);
-            // 火焰的光源
-            Light lightObject = prefab.GetComponentInChildren<Light>();
-            // 新增火焰的光源至shadowModule，以便追蹤
-            shadowModule.addNewLightToLights(lightObject.gameObject);
-            Destroy(gameObject);
+            if(collision.transform.tag == "Torch")
+            {                
+                collision.transform.GetChild(0).gameObject.SetActive(true);
+                Light lightObject = collision.transform.GetComponentInChildren<Light>();
+                shadowModule.addNewLightToLights(lightObject.gameObject);
+                Destroy(gameObject);
+            }
+            else
+            {
+                Vector3 firePosition = transform.position;
+                firePosition.y -= 0.5f;
+                // 火焰
+                GameObject prefab = Instantiate(firePartical, firePosition, firePartical.transform.rotation);
+                // 火焰的光源
+                Light lightObject = prefab.GetComponentInChildren<Light>();
+                // 新增火焰的光源至shadowModule，以便追蹤
+                shadowModule.addNewLightToLights(lightObject.gameObject);
+                Destroy(gameObject);
+            }
+            
         }
         else if(type == "water")
         {
@@ -66,7 +76,7 @@ public class Pot : MonoBehaviour
 
     void OnTriggerEnter(Collider collider)
     {
-        Debug.Log("Trigger = " + collider.gameObject.name);
+        
         if (type == "water")
         {
             if (collider.gameObject.tag == "Fire")
@@ -82,7 +92,18 @@ public class Pot : MonoBehaviour
 
                 Destroy(collider.gameObject);
                 Destroy(gameObject);
-            }            
+            }    
+            else if(collider.gameObject.tag == "Torch")
+            {
+                //Debug.Log("Trigger = " + collider.gameObject.name);
+                // 產生煙
+                Light lightObject = collider.transform.GetComponentInChildren<Light>();
+                shadowModule.deleteLightsObject(lightObject.gameObject);
+
+                GameObject prefab = Instantiate(smokePartical, transform.position, smokePartical.transform.rotation);
+                collider.transform.GetChild(0).gameObject.SetActive(false);
+                Destroy(gameObject);
+            }
         }
 
         

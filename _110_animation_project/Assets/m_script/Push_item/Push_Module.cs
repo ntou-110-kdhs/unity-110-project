@@ -115,6 +115,7 @@ public class Push_Module : MonoBehaviour
                     */
                     hit.transform.GetComponent<FixedJoint>().connectedBody = this.GetComponent<Rigidbody>();        //連接物體
                     pushedObject = hit.transform.gameObject;                                         //紀錄物體
+                    pushedObject.GetComponent<Rigidbody>().isKinematic = false;
                     isFirstIn = true;
                     isPushingObject = true;
 
@@ -122,13 +123,19 @@ public class Push_Module : MonoBehaviour
                 else if (hit.transform.tag == ("Movable") && Input.GetKeyDown(KeyCode.F) && charController.isGrounded && isPushingObject == true && !shadowModule.IsShadowing && !throwModule.IsTakingAim)   //再次點擊 取消
                 {
                     if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+                    pushedObject.GetComponent<Rigidbody>().isKinematic = true;
                     pushedObject = null;
                     isPushingObject = false;
 
                 }
                 else if (!charController.isGrounded)                                                            //角色離開地面時取消
                 {
-                    if (pushedObject != null) pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+                    if (pushedObject != null)
+                    {
+                        pushedObject.GetComponent<FixedJoint>().connectedBody = null;
+                        pushedObject.GetComponent<Rigidbody>().isKinematic = true;
+                    }
+                        
                     pushedObject = null;
                     isPushingObject = false;
 

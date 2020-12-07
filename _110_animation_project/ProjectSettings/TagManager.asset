@@ -12,6 +12,7 @@ TagManager:
   - Fire
   - Enemy
   - MeshsDisabled
+  - Torch
   layers:
   - Default
   - TransparentFX
@@ -23,7 +24,7 @@ TagManager:
   - 
   - PostProcessing
   - MiniMapMark
-  - 
+  - NoShadow
   - 
   - 
   - 
