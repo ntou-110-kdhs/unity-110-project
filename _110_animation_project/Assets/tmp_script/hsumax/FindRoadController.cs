@@ -89,7 +89,7 @@ public class FindRoadController : MonoBehaviour
 
     // 巡邏到位之後是否停頓
     [SerializeField] private bool is_Stopping = false;
-
+    [SerializeField] private float idleTime = 0.0f;
 
 
     //GetPointToDo test;
@@ -363,7 +363,7 @@ public class FindRoadController : MonoBehaviour
                     Debug.Log("is Stopping");
                     enemyAC.knightIdle();
                     enemyAC.knightNotRunning();
-                    Invoke("Idle", 3.0f);
+                    Invoke("Idle", idleTime);
                     is_Stopping = true;
                 }                
             }
