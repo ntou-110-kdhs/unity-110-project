@@ -11,14 +11,14 @@ public class ShadowModule : MonoBehaviour
     //人物身上的freeLookCam攝影機
     [SerializeField] private CinemachineFreeLook freeLookCam;
     // minMapController
-    [SerializeField]  private MiniMapController miniMap;
+    [SerializeField] private MiniMapController miniMap;
     // 敵人管理器
     [SerializeField] private EnemyManager enemyManager;
 
     //鏡頭濾鏡特效
     private PostProcessVolume ppv = null;
 
-    
+
 
     /**********影子偵測*********/
     //你人是否站在影子上
@@ -34,7 +34,7 @@ public class ShadowModule : MonoBehaviour
     /**********潛入影子*********/
     //你人是否"進入"影子內
     [SerializeField] private bool isShadowing = false;
-    public bool IsShadowing { get { return isShadowing; } set { isShadowing = value; } } 
+    public bool IsShadowing { get { return isShadowing; } set { isShadowing = value; } }
 
     //人物身上的mesh物件陣列
     private List<GameObject> meshs = new List<GameObject>();
@@ -62,7 +62,7 @@ public class ShadowModule : MonoBehaviour
     private Vector3 dir = Vector3.zero;
     private Transform shadowOwner;
     private Transform shadowOwnerLight;
-    private Vector3 shadowPos = Vector3.zero;
+    [SerializeField] private Vector3 shadowPos = Vector3.zero;
     private Vector3 shadowMoveDir = Vector3.zero;
 
     /**********影子邊界*********/
@@ -154,7 +154,7 @@ public class ShadowModule : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       /* if(isShadowing && ppv.weight < 1)
+        if(isShadowing && ppv.weight < 1)
         {
             ppv.weight += Time.deltaTime;
             if (ppv.weight > 1)
@@ -169,7 +169,7 @@ public class ShadowModule : MonoBehaviour
             {
                 ppv.weight = 0;
             }
-        }*/
+        }
     }
 
     /// <summary>
@@ -181,11 +181,11 @@ public class ShadowModule : MonoBehaviour
         const float _newRigsRadius = 6.0f;
 
 
-
+        
         // 調整攝影機位置
-        if (isEnter == true) { 
+        if (isEnter == true) {
 
-
+            shadowPos = transform.position;
             isShadowing = true;
             freeLookCam.LookAt = transform;
 
@@ -665,7 +665,7 @@ public class ShadowModule : MonoBehaviour
         isInShadow = false;
         Vector3 playerPos = transform.position;
 
-        float offset = 1.0f;
+        float offset = 0.2f;
         if (isShadowing)
         {
             offset = 0.2f;
