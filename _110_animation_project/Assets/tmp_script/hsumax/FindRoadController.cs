@@ -7,7 +7,7 @@ using Cinemachine;
 public class FindRoadController : MonoBehaviour
 {
     private Transform target;//target to follow
-    private Transform checkTarget;//target to follow
+    [SerializeField] private Transform checkTarget;//target to follow
     private EnemyAnimateController enemyAC; 
     [SerializeField] private NavMeshAgent agent;
     //private Ray rayToTarget;
@@ -185,6 +185,7 @@ public class FindRoadController : MonoBehaviour
 
             //待机状态，由于观察动画时间较长，并希望动画完整播放，故等待时间是根据一个完整动画的播放长度，而不是指令间隔时间
             case MonsterState.CHECK:
+                is_Stopping = false;
                 enemyAC.knightNotEngage();
                 enemyAC.knightRunning();
                 //agent.stoppingDistance = 0f;
@@ -236,11 +237,12 @@ public class FindRoadController : MonoBehaviour
 
             //警戒状态，播放一次警告动画和声音，并持续朝向玩家位置
             case MonsterState.WARN:
+                is_Stopping = false;
                 if (!is_Warned)
                 {
                     is_Warned = true;
-                    enemyAC.knightNotEngage();
-                    enemyAC.knightRunning();
+                    /*enemyAC.knightNotEngage();
+                    enemyAC.knightRunning();*/
                 }
                 targetDirect = target.transform.position - transform.position;
                 targetDirect.y = 0.0f;
@@ -266,6 +268,7 @@ public class FindRoadController : MonoBehaviour
 
             //追击状态，朝着玩家跑去
             case MonsterState.CHASE:
+                is_Stopping = false;
                 if (!is_Running)
                 {
                     is_Running = true;
@@ -293,8 +296,9 @@ public class FindRoadController : MonoBehaviour
 
             //返回状态，超出追击范围后返回出生位置
             case MonsterState.RETURN:
-                enemyAC.knightNotEngage();
-                enemyAC.knightRunning();
+                is_Stopping = false;
+                //enemyAC.knightNotEngage();
+                //enemyAC.knightRunning();
                 //朝向初始位置移动
                 //targetDirect = initialPosition - transform.position;
                 //targetDirect.y = 0.0f;
@@ -425,23 +429,26 @@ public class FindRoadController : MonoBehaviour
             //currentState = MonsterState.STAND;
             return;
         }
+        if (alertAngleWithRaycast())
+        {
+            if (diatanceToPlayer < attackRadius || alertRate == 100.0f)
+            {
+                Debug.Log("Attack EnemyDistanceCheck");
+                //if currentState != MonsterState.CHASE
+                currentState = MonsterState.CHASE;
+            }
+            else if (diatanceToPlayer < defendRadius || alertRate == 100.0f)
+            {
 
-        if (diatanceToPlayer < attackRadius || alertRate == 100.0f)
-        {
-            Debug.Log("Attack EnemyDistanceCheck");
-            //if currentState != MonsterState.CHASE
-            currentState = MonsterState.CHASE;
+                currentState = MonsterState.CHASE;
+            }
+            else if (diatanceToPlayer < alertRadius)
+            {
+                currentState = MonsterState.WARN;
+            }
         }
-        else if (diatanceToPlayer < defendRadius || alertRate == 100.0f)
-        {
-
-            currentState = MonsterState.CHASE;
-        }
-        else if (diatanceToPlayer < alertRadius)
-        {
-            currentState = MonsterState.WARN;
-        }
-        else if (checkTarget != null && Vector3.Distance(checkTarget.position, transform.position) < checkRadius)
+        
+        if (checkTarget != null && Vector3.Distance(checkTarget.position, transform.position) < checkRadius)
         {
             currentState = MonsterState.CHECK;
             Invoke("StartChecking", 2f);
@@ -472,6 +479,8 @@ public class FindRoadController : MonoBehaviour
         {
             // to do
             // animator idle
+            enemyAC.knightIdle();
+            enemyAC.knightNotRunning();
             Debug.Log("Is Checking...");
             Invoke("CheckFinish", 2);
         }
@@ -614,7 +623,13 @@ public class FindRoadController : MonoBehaviour
         //Debug.DrawLine(transTmp, transTmp + targetDirect.normalized * alertRadius, Color.red);
         bool    isAngleEqual    = angle <= alertAngle,
                 isHitting       = Physics.Raycast(transTmp, targetDirect.normalized, out hitInfo, alertRadius);
+        
         bool    isHittingEqual  = isHitting ? hitInfo.collider.gameObject.transform == target : false;
+
+        if (isHittingEqual)
+        {
+            Debug.Log(hitInfo.transform.gameObject.name);
+        }
         if (isAngleEqual && isHitting && isHittingEqual && !isShadowing)
         {
             //Debug.Log("Alertistrue is True.");

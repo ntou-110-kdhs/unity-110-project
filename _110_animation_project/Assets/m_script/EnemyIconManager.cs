@@ -7,14 +7,17 @@ public class EnemyIconManager : MonoBehaviour
 {
 
     [SerializeField] List<Sprite> iconLists = new List<Sprite>();
-    private Transform target = null;
+    [SerializeField] private Transform target = null;
 
     private Image iconImg = null;
     private Transform rateImg = null;
     // Start is called before the first frame update
     void Start()
     {
-        target = GameObject.FindGameObjectWithTag("Player").transform;
+        if(target == null)
+        {
+            target = GameObject.FindGameObjectWithTag("Player").transform;
+        }        
         iconImg = GetComponent<Image>();
         rateImg = transform.GetChild(0);
     }

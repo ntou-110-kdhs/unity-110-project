@@ -42,13 +42,15 @@ public class AssassinModule : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        
         if (other.transform.tag == "Enemy")
         {
+            
             Quaternion rot = Quaternion.FromToRotation(transform.forward, other.transform.forward);
             float angle = rot.eulerAngles.y;
             //Debug.Log(rot.eulerAngles.y);
             if (Mathf.Abs(180.0f - angle) >= 120) // 300~80度
-            {
+            {                
                 canAssassinate = true;
                 assassinTarget = other.transform;
             }
